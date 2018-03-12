@@ -39,7 +39,7 @@ void Window::initialize_objects()
     box = new Skybox(skyboxShader, width, height);
     
     //Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
-    fernPlant = new Plant("fern", plantShader, glm::vec3(600.0f, -300.0f, 1000.0f), glm::vec3(0.42f, 0.557f, 0.137f), 60.0f, 25.0f, 10.0f, 10);
+    fernPlant = new Plant("fern", plantShader, glm::vec3(600.0f, -300.0f, 1000.0f), glm::vec3(0.42f, 0.557f, 0.137f), 60.0f, 25.0f, 10.0f, 4);
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
