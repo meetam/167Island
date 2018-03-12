@@ -40,11 +40,16 @@ private:
     
 public:
     Plant(string pType, GLuint shaderProgram, glm::vec3 pPosition, glm::vec3 pColor, float pStartAngle, float pAngleDelta, float pDrawSize, int pIterations);
-    void draw();
-    void drawLines(vector<glm::vec3> lineSegment);
+    
     string makeFernRule(int numRules);
     string addF(int numRules);
+    string makeBushRule(int numRules);
+    string makeVineRule(int numRules);
+    
     void makePoints();
+    
+    void draw();
+    void drawLines(vector<glm::vec3> lineSegment);
 };
 
 #endif /* Plant_h */

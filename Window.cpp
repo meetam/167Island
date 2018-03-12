@@ -6,6 +6,8 @@
 const char * window_title = "Assignment 4";
 Skybox * box;
 Plant * fernPlant;
+Plant * bushPlant;
+Plant * vinePlant;
 
 GLint plantShader, skyboxShader;
 bool scaleSet = false;
@@ -39,7 +41,9 @@ void Window::initialize_objects()
     box = new Skybox(skyboxShader, width, height);
     
     //Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
-    fernPlant = new Plant("fern", plantShader, glm::vec3(600.0f, -300.0f, 1000.0f), glm::vec3(0.42f, 0.557f, 0.137f), 60.0f, 25.0f, 10.0f, 4);
+    fernPlant = new Plant("fern", plantShader, glm::vec3(450.0f, -300.0f, 1000.0f), glm::vec3(0.42f, 0.557f, 0.137f), 60.0f, 25.0f, 20.0f, 5);
+    bushPlant = new Plant("bush", plantShader, glm::vec3(0.0f, -300.0f, 500.0f), glm::vec3(0.133f, 0.545f, 0.133f), 95.0f, 22.5f, 5.0f, 4);
+    vinePlant = new Plant("vine", plantShader, glm::vec3(100.0f, -300.0f, 500.0f), glm::vec3(0.133f, 0.7f, 0.133f), 90.0f, 25.7f, 5.0f, 5);
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
@@ -132,6 +136,8 @@ void Window::display_callback(GLFWwindow* window)
     glUseProgram(plantShader);
     
     fernPlant->draw();
+    bushPlant->draw();
+    vinePlant->draw();
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();

@@ -25,6 +25,12 @@ Plant::Plant(string pType, GLuint shaderProgram, glm::vec3 pPosition, glm::vec3 
     if (type == "fern")
         rule = makeFernRule(iterations);
     
+    else if (type == "bush")
+        rule = makeBushRule(iterations);
+    
+    else if (type == "vine")
+        rule = makeVineRule(iterations);
+    
     //cout << rule << endl;
     
     makePoints(); //Populate points
@@ -39,22 +45,37 @@ string Plant::makeFernRule(int numRules)
     
     else
     {
-        string rule;
-        rule += addF(numRules);
-        rule += "[-";
-        rule += makeFernRule(numRules - 1);
-        rule += "][";
-        rule += makeFernRule(numRules - 1);
-        rule += "]";
-        rule += addF(numRules);
-        rule += "[-";
-        rule += makeFernRule(numRules - 1);
-        rule += "]+";
-        rule += addF(numRules);
-        rule += makeFernRule(numRules - 1);
+        string rule = addF(numRules) + "[-" + makeFernRule(numRules - 1) + "][" + makeFernRule(numRules - 1) + "]" + addF(numRules) + "[-" + makeFernRule(numRules - 1) + "]+" + addF(numRules) + makeFernRule(numRules - 1);
         return rule;
     }
-        
+}
+
+string Plant::makeBushRule(int numRules)
+{
+    if (numRules <= 0)
+    {
+        return "";
+    }
+    
+    else
+    {
+        string rule = makeBushRule(numRules - 1) + makeBushRule(numRules - 1) + "FF-[-" + makeBushRule(numRules - 1) + "F+" + makeBushRule(numRules - 1) + "F+" + makeBushRule(numRules - 1) + "F]+[+" + makeBushRule(numRules - 1) + "F-" + makeBushRule(numRules - 1) + "F-" + makeBushRule(numRules - 1) + "F]";
+        return rule;
+    }
+}
+
+string Plant::makeVineRule(int numRules)
+{
+    if (numRules <= 0)
+    {
+        return "";
+    }
+    
+    else
+    {
+        string rule = makeVineRule(numRules - 1) + "F[+" + makeVineRule(numRules - 1) + "F]" + makeVineRule(numRules - 1) + "F[-" + makeVineRule(numRules - 1) + "F]" + makeVineRule(numRules - 1) + "F";
+        return rule;
+    }
 }
 
 string Plant::addF(int numRules)
