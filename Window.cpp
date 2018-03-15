@@ -1,15 +1,18 @@
 #include "Window.h"
 #include "Skybox.h"
-#include "Curve.h"
 #include "Plant.h"
+#include "Geometry.h"
+#include "Transform.h"
+#include "Robot.h"
 
 const char * window_title = "Assignment 4";
 Skybox * box;
 Plant * fernPlant;
 Plant * bushPlant;
 Plant * vinePlant;
+Transform * robots;
 
-GLint plantShader, skyboxShader;
+GLint plantShader, skyboxShader, fogShader;
 bool scaleSet = false;
 glm::vec3 offsets[25];
 GLuint quadVAO;
@@ -18,8 +21,10 @@ int curveIndex = 0;
 // On some systems you need to change this to the absolute path
 #define PLANT_VERTEX_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/plantShader.vert"
 #define PLANT_FRAGMENT_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/plantShader.frag"
-#define BOX_VERTEX_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/boxShader.vert"
-#define BOX_FRAGMENT_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/boxShader.frag"
+#define BOX_VERTEX_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/boxShader.vert"
+#define BOX_FRAGMENT_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/boxShader.frag"
+#define FOG_VERTEX_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/fogShader.vert"
+#define FOG_FRAGMENT_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/fogShader.frag"
 
 // Default camera parameters
 glm::vec3 cam_pos(0.0f, 0.0f, -20.0f);		// e  | Position of camera
@@ -36,7 +41,8 @@ void Window::initialize_objects()
 {
     // Load the shader program. Make sure you have the correct filepath up top
     plantShader = LoadShaders(PLANT_VERTEX_PATH, PLANT_FRAGMENT_PATH);
-    skyboxShader = LoadShaders(BOX_VERTEX_SHADER_PATH, BOX_FRAGMENT_SHADER_PATH);
+    skyboxShader = LoadShaders(BOX_VERTEX_PATH, BOX_FRAGMENT_PATH);
+    fogShader = LoadShaders(FOG_VERTEX_PATH, FOG_FRAGMENT_PATH);
     
     box = new Skybox(skyboxShader, width, height);
     
@@ -44,6 +50,28 @@ void Window::initialize_objects()
     fernPlant = new Plant("fern", plantShader, glm::vec3(450.0f, -300.0f, 1000.0f), glm::vec3(0.42f, 0.557f, 0.137f), 60.0f, 25.0f, 20.0f, 5);
     bushPlant = new Plant("bush", plantShader, glm::vec3(0.0f, -300.0f, 500.0f), glm::vec3(0.133f, 0.545f, 0.133f), 95.0f, 22.5f, 5.0f, 4);
     vinePlant = new Plant("vine", plantShader, glm::vec3(100.0f, -300.0f, 500.0f), glm::vec3(0.133f, 0.7f, 0.133f), 90.0f, 25.7f, 5.0f, 5);
+    
+    robots = new Transform();
+    glm::vec3 offset = glm::vec3(0.0f, 0.0f, 0.0f);
+    for (int i = 0; i < 25; i++)
+    {
+        if (i == 0) {//do nothing
+        }
+        
+        else if (i == 5 || i == 10 || i == 15 || i == 20)
+        {
+            offset.y += 60.0f;
+            offset.x = 0.0f;
+        }
+        
+        else
+        {
+            offset.x += 70.0f;
+        }
+        
+        offsets[i] = offset;
+        robots->addChild(new Robot(fogShader, offset)); //, offset));
+    }
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
@@ -135,9 +163,13 @@ void Window::display_callback(GLFWwindow* window)
     
     glUseProgram(plantShader);
     
-    fernPlant->draw();
-    bushPlant->draw();
+    //fernPlant->draw();
+    //bushPlant->draw();
     vinePlant->draw();
+    
+    glUseProgram(fogShader);
+    glm::mat4 c = glm::mat4(1.0f);
+    //robots->draw(c);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();

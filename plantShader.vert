@@ -12,8 +12,6 @@ out vec3 normalColor;
 
 void main()
 {
-    //vec3 offset = offsets[gl_InstanceID];
     gl_Position = projection * view *  model * vec4(position, 1.0f);
-    
     normalColor = color;
 }
