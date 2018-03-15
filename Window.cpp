@@ -1,25 +1,32 @@
-#include "Window.h"
-#include "Skybox.h"
-#include "Curve.h"
+#include "window.h"
 #include "Plant.h"
 
-const char * window_title = "Assignment 4";
-Skybox * box;
-Plant * fernPlant;
-Plant * bushPlant;
-Plant * vinePlant;
-
-GLint plantShader, skyboxShader;
-bool scaleSet = false;
-glm::vec3 offsets[25];
-GLuint quadVAO;
-int curveIndex = 0;
+const char* window_title = "Assignment 4";
+GLint plantShader;
+GLint skyboxShader;
+GLint terrainShader;
 
 // On some systems you need to change this to the absolute path
-#define PLANT_VERTEX_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/plantShader.vert"
-#define PLANT_FRAGMENT_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/plantShader.frag"
-#define BOX_VERTEX_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/boxShader.vert"
-#define BOX_FRAGMENT_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/boxShader.frag"
+#define PLANT_VERTEX_PATH "../plantShader.vert"
+#define PLANT_FRAGMENT_PATH "../plantShader.frag"
+#define SKYBOX_VERTEX_SHADER_PATH "../skyboxShader.vert"
+#define SKYBOX_FRAGMENT_SHADER_PATH "../skyboxShader.frag"
+#define TERRAIN_VERTEX_SHADER_PATH "../terrainShader.vert"
+#define TERRAIN_FRAGMENT_SHADER_PATH "../terrainShader.frag"
+
+// resource files
+const char* heightMap = "../res/height_map.png";
+const char* sandTexture = "../res/texture_sand.jpg";
+const char* groundTexture = "../res/texture_ground.jpg";
+std::vector<const char*> skyFiles = {
+	"../res/skybox_sky/ss_ft.tga",
+	"../res/skybox_sky/ss_bk.tga",
+	"../res/skybox_sky/ss_up.tga",
+	"../res/skybox_sky/ss_dn.tga",
+	"../res/skybox_sky/ss_rt.tga",
+	"../res/skybox_sky/ss_lf.tga"
+};
+
 
 // Default camera parameters
 glm::vec3 cam_pos(0.0f, 0.0f, -20.0f);		// e  | Position of camera
@@ -28,31 +35,61 @@ glm::vec3 cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
 
 int Window::width;
 int Window::height;
-
 glm::mat4 Window::P;
 glm::mat4 Window::V;
 
+Skybox* Window::skybox;
+Terrain* Window::terrain;
+Plant* fernPlant;
+Plant* bushPlant;
+Plant* vinePlant;
+
+const double MOUSE_ROTATION_FACTOR = 0.25;
+const double MOUSE_TRANSLATION_FACTOR = 0.04;
+bool Window::isMousePressed;
+int Window::mouseButtonPressed;
+double Window::xPrevious;
+double Window::yPrevious;
+
 void Window::initialize_objects()
 {
-    // Load the shader program. Make sure you have the correct filepath up top
-    plantShader = LoadShaders(PLANT_VERTEX_PATH, PLANT_FRAGMENT_PATH);
-    skyboxShader = LoadShaders(BOX_VERTEX_SHADER_PATH, BOX_FRAGMENT_SHADER_PATH);
-    
-    box = new Skybox(skyboxShader, width, height);
-    
-    //Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
-    fernPlant = new Plant("fern", plantShader, glm::vec3(450.0f, -300.0f, 1000.0f), glm::vec3(0.42f, 0.557f, 0.137f), 60.0f, 25.0f, 20.0f, 5);
-    bushPlant = new Plant("bush", plantShader, glm::vec3(0.0f, -300.0f, 500.0f), glm::vec3(0.133f, 0.545f, 0.133f), 95.0f, 22.5f, 5.0f, 4);
-    vinePlant = new Plant("vine", plantShader, glm::vec3(100.0f, -300.0f, 500.0f), glm::vec3(0.133f, 0.7f, 0.133f), 90.0f, 25.7f, 5.0f, 5);
+	// loads the shader programs
+	plantShader = LoadShaders(PLANT_VERTEX_PATH, PLANT_FRAGMENT_PATH);
+	skyboxShader = LoadShaders(SKYBOX_VERTEX_SHADER_PATH, SKYBOX_FRAGMENT_SHADER_PATH);
+	terrainShader = LoadShaders(TERRAIN_VERTEX_SHADER_PATH, TERRAIN_FRAGMENT_SHADER_PATH);
+
+	// creates the plants
+	// Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
+	fernPlant = new Plant("fern", plantShader, glm::vec3(450.0f, -300.0f, 1000.0f), glm::vec3(0.42f, 0.557f, 0.137f), 60.0f, 25.0f, 20.0f, 5);
+	bushPlant = new Plant("bush", plantShader, glm::vec3(0.0f, -300.0f, 500.0f), glm::vec3(0.133f, 0.545f, 0.133f), 95.0f, 22.5f, 5.0f, 4);
+	vinePlant = new Plant("vine", plantShader, glm::vec3(100.0f, -300.0f, 500.0f), glm::vec3(0.133f, 0.7f, 0.133f), 90.0f, 25.7f, 5.0f, 5);
+
+	// creates the skybox
+	// Parameters: vector of file paths
+	skybox = new Skybox(skyFiles);
+
+	// creates the terrain
+	// Parameters: number of vectors (size of height map), size of terrain, height map file path
+	terrain = new Terrain(256, 800, heightMap);
+	terrain->loadTexture(sandTexture, 0);
+	terrain->loadTexture(groundTexture, 1);
+	
+	// configure initial settings
+	isMousePressed = false;
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
 void Window::clean_up()
 {
+	delete(fernPlant);
+	delete(bushPlant);
+	delete(vinePlant);
+	delete(skybox);
+	delete(terrain);
+
 	glDeleteProgram(plantShader);
-    glDeleteProgram(skyboxShader);
-    delete box;
-    delete fernPlant;
+	glDeleteProgram(skyboxShader);
+	glDeleteProgram(terrainShader);
 }
 
 GLFWwindow* Window::create_window(int width, int height)
@@ -114,14 +151,13 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 
 	if (height > 0)
 	{
-		P = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 2000.0f);
+		P = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 		V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 	}
 }
 
 void Window::idle_callback()
 {
-    
 }
 
 void Window::display_callback(GLFWwindow* window)
@@ -129,24 +165,34 @@ void Window::display_callback(GLFWwindow* window)
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Use the shader of programID
+	// draws the plants
+	glUseProgram(plantShader);
+	//fernPlant->draw();
+	//bushPlant->draw();
+	//vinePlant->draw();
+
+	// draws the terrain
+	glUseProgram(terrainShader);
+	GLuint uView = glGetUniformLocation(terrainShader, "view");
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
+	GLuint uProjection = glGetUniformLocation(terrainShader, "projection");
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
+	terrain->draw(terrainShader);
+
+	// draws the skybox
 	glUseProgram(skyboxShader);
-    box->draw();
-    
-    glUseProgram(plantShader);
-    
-    fernPlant->draw();
-    bushPlant->draw();
-    vinePlant->draw();
+	glm::mat4 skyboxView = glm::mat4(glm::mat3(V));
+	uView = glGetUniformLocation(skyboxShader, "view");
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &skyboxView[0][0]);
+	uProjection = glGetUniformLocation(skyboxShader, "projection");
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
+	skybox->draw(skyboxShader);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
 	// Swap buffers
 	glfwSwapBuffers(window);
 }
-
-bool rDown = false;
-bool lDown = false;
 
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -159,89 +205,69 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			// Close the window. This causes the program to also terminate.
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
-    }
-    
-    // Check for control button
-    if (key == GLFW_KEY_LEFT_CONTROL)
-    {
-        if (action == GLFW_PRESS)
-            rDown = true;
-        if (action == GLFW_RELEASE)
-            rDown = false;
-    }
+
+	}
 }
 
-double xPos1, xPos2;
-double yPos1, yPos2;
-void Window::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-    if (button == GLFW_MOUSE_BUTTON_LEFT)
-    {
-        if (action == GLFW_PRESS)
-        {
-            lDown = true;
-            glfwGetCursorPos(window, &xPos1, &yPos1);
-        }
-        if (action == GLFW_RELEASE)
-        {
-            lDown = false;
-        }
-    }
+void Window::mouse_button_callback(GLFWwindow* window, int key, int action, int mods) {
+	if (action == GLFW_PRESS) {
+		isMousePressed = true;
+		mouseButtonPressed = key;
+	}
+
+	else if (action == GLFW_RELEASE) {
+		isMousePressed = false;
+	}
 }
 
-void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    glm::vec4 cam (cam_pos, 1.0f);
-    if (yoffset < 0)
-    {
-        glm::mat4 positiveZ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 10.0f));
-        cam = positiveZ * cam;
-    }
-    
-    else if (yoffset > 0)
-    {
-        glm::mat4 negativeZ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
-        cam = negativeZ * cam;
-    }
-    
-    cam_pos = glm::vec3(cam.x, cam.y, cam.z);
-    V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+void Window::cursor_position_callback(GLFWwindow* window, double x, double y) {
+	if (isMousePressed) {
+		switch (mouseButtonPressed) {
+			case GLFW_MOUSE_BUTTON_LEFT: {
+				glm::vec3 previousPosition = trackBallMapping(xPrevious, yPrevious);
+				glm::vec3 currentPosition = trackBallMapping(x, y);
+
+				float dotProduct = glm::dot(previousPosition, currentPosition);
+				if (dotProduct < 0.001f) dotProduct = 0.001f;
+				if (dotProduct > 0.999f) dotProduct = 0.999f;
+
+				float rotationAngle = acos(dotProduct) * MOUSE_ROTATION_FACTOR;
+				glm::vec3 rotationAxis = glm::cross(previousPosition, currentPosition);
+				
+				glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), rotationAngle, rotationAxis);
+				cam_pos = glm::vec3(rotationMatrix * glm::vec4(cam_pos, 1.0f));
+				cam_up = glm::inverse(glm::transpose(glm::mat3(rotationMatrix))) * cam_up;
+				V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+			}
+		}
+	}
+
+	// updates the previous cursor positions
+	xPrevious = x;
+	yPrevious = y;
 }
 
-void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    xPos2 = xpos;
-    yPos2 = ypos;
-    
-    if (rDown)
-    {
-    }
-    
-    if (lDown)
-    {
-        glm::vec3 v1 = trackballCalculation(xPos1, yPos1);
-        glm::vec3 v2 = trackballCalculation(xPos2, xPos2);
-        glm::vec3 begin (v1.x, v1.y, v1.z);
-        glm::vec3 end (v2.x, v2.y, v2.z);
-        glm::vec3 axis = glm::cross(v2, v1);
-        float angle = glm::dot(v1, v2) / (v1.length() * v2.length()); /// 180.0f * glm::pi<float>();
-        angle = acos(angle);
-        glm::vec4 cameraPos (cam_pos, 0);
-        cameraPos = glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis) * cameraPos;
-        cam_pos = glm::vec3(cameraPos.x, cameraPos.y, cameraPos.z);
-        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
-    }
+void Window::scroll_callback(GLFWwindow* window, double x, double y) {
+	// uses negative y value since the positive z direction is outward
+	// scrolling up has positive values but has to go in the negative z direction
+	cam_pos = glm::vec3(glm::translate(glm::mat4(1.0f), glm::normalize(-cam_pos) * float(y)) * glm::vec4(cam_pos, 1.0f));
+	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 }
 
-glm::vec3 Window::trackballCalculation(double x, double y)
-{
-    glm::vec3 v;
-    v.x = (2.0f * (float)x - width) / width;
-    v.y = (height - 2.0f * (float)y) / height;
-    v.z = 0.0f;
-    float d = glm::length(v); //v.length();
-    d = (d < 1.0f) ? d : 1.0f;
-    v.z = sqrtf(1.001f - d*d);
-    v = glm::normalize(v);
-    return v;
+glm::vec3 Window::trackBallMapping(double x, double y) {
+	glm::vec3 v;    // Vector v is the synthesized 3D position of the mouse location on the trackball
+	float d;     // this is the depth of the mouse location: the delta between the plane through the center of the trackball and the z position of the mouse
+
+	v.x = (2.0 * x - width) / width;   // this calculates the mouse X position in trackball coordinates, which range from -1 to +1
+	v.y = (height - 2.0 * y) / height;   // this does the equivalent to the above for the mouse Y position
+	v.z = 0.0;   // initially the mouse z position is set to zero, but this will change below
+
+	d = glm::length(v);    // this is the distance from the trackball's origin to the mouse location, without considering depth (=in the plane of the trackball's origin)
+	d = (d < 1.0) ? d : 1.0;   // this limits d to values of 1.0 or less to avoid square roots of negative values in the following line
+
+	v.z = sqrtf(1.001 - d * d);  // this calculates the Z coordinate of the mouse position on the trackball, based on Pythagoras: v.z*v.z + d*d = 1*1
+	glm::normalize(v); // Still need to normalize, since we only capped d, not v.
+
+	return v;  // return the mouse location on the surface of the trackball
 }
+
