@@ -9,6 +9,7 @@
 #include "Plant.h"
 #include "Window.h"
 #include "Math.h"
+#include "PlantSegment.h"
 using namespace std;
 
 Plant::Plant(string pType, GLuint shaderProgram, glm::vec3 pPosition, glm::vec3 pColor, float pStartAngle, float pAngleDelta, float pDrawSize, int pIterations)
@@ -33,7 +34,7 @@ Plant::Plant(string pType, GLuint shaderProgram, glm::vec3 pPosition, glm::vec3 
     
     //cout << rule << endl;
     
-    makePoints(); //Populate points
+    makePoints(); //Populate line segments
 }
 
 string Plant::makeFernRule(int numRules)
@@ -126,7 +127,8 @@ void Plant::makePoints()
         else if (rule[i] == ']')
         {
             //End of line segment
-            lineSegments.push_back(lineSegment);
+            PlantSegment plantSegment (shader, lineSegment, color);
+            plantSegments.push_back(plantSegment);
             lineSegment.clear();
             
             //Revert to earlier position and angle
@@ -140,44 +142,16 @@ void Plant::makePoints()
 
 void Plant::draw()
 {
-    for (int i = 0; i < lineSegments.size(); i++)
+    for (int i = 0; i < plantSegments.size(); i++)
     {
-        drawLines(lineSegments[i]);
+        plantSegments[i].draw();
     }
 }
 
-void Plant::drawLines(vector<glm::vec3> lineSegment)
+void Plant::scale(glm::mat4 scaleMatrix)
 {
-    //Set up VAO
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, lineSegment.size() * sizeof(glm::vec3), &lineSegment[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    
-    //Unbind buffers
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    
-    glm::mat4 toWorld (1.0f);
-    glm::mat4 modelview = Window::V * toWorld;
-    uProjection = glGetUniformLocation(shader, "projection");
-    uModel = glGetUniformLocation(shader, "model");
-    uView = glGetUniformLocation(shader, "view");
-    uColor = glGetUniformLocation(shader, "color");
-    
-    // Now send these values to the shader program
-    glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
-    glUniformMatrix4fv(uModel, 1, GL_FALSE, &toWorld[0][0]);
-    glUniformMatrix4fv(uView, 1, GL_FALSE, &Window::V[0][0]);
-    glUniform3f(uColor, color.x, color.y, color.z);
-    
-    //Draw line
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_LINE_STRIP, 0, lineSegment.size());
-    
-    //Unbind
-    glBindVertexArray(0);
+    for (int i = 0; i < plantSegments.size(); i++)
+    {
+        plantSegments[i].scale(scaleMatrix);
+    }
 }

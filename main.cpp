@@ -1,4 +1,6 @@
 #include "main.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 GLFWwindow* window;
 
@@ -14,14 +16,15 @@ void setup_callbacks()
 	glfwSetErrorCallback(error_callback);
 	// Set the key callback
 	glfwSetKeyCallback(window, Window::key_callback);
-    // Set mouse button callback
-    glfwSetMouseButtonCallback(window, Window::mouse_button_callback);
-    // Set mouse movement callback
-    glfwSetCursorPosCallback(window, Window::cursor_pos_callback);
-    // Set scroll callback
-    glfwSetScrollCallback(window, Window::scroll_callback);
+	// Set the mouse button callback
+	glfwSetMouseButtonCallback(window, Window::mouse_button_callback);
+	// Set the cursor position callback
+	glfwSetCursorPosCallback(window, Window::cursor_position_callback);
+	// Set the scroll callback
+	glfwSetScrollCallback(window, Window::scroll_callback);
 	// Set the window resize callback
 	glfwSetFramebufferSizeCallback(window, Window::resize_callback);
+
 }
 
 void setup_glew()
@@ -53,7 +56,8 @@ void setup_opengl_settings()
 	// You can also use the paramter of GL_LINE instead of GL_FILL to see wireframes
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	// Disable backface culling to render both sides of polygons
-	glDisable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	// Set clear color
 	glClearColor(0.05f, 0.8f, 0.85f, 1.0f);
 }
