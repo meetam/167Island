@@ -21,6 +21,7 @@
 #include "shader.h"
 #include "Skybox.h"
 #include "Terrain.h"
+#include "Water.h"
 
 class Window
 {
@@ -33,6 +34,7 @@ public:
 	// graphics-related variables
 	static Skybox* skybox;
 	static Terrain* terrain;
+	static Water* water;
 
 	// mouse-related variables
 	static bool isMousePressed;
