@@ -5,6 +5,7 @@ const char* window_title = "Assignment 4";
 GLint plantShader;
 GLint skyboxShader;
 GLint terrainShader;
+GLint waterShader;
 
 // On some systems you need to change this to the absolute path
 #define PLANT_VERTEX_PATH "../plantShader.vert"
@@ -13,6 +14,8 @@ GLint terrainShader;
 #define SKYBOX_FRAGMENT_SHADER_PATH "../skyboxShader.frag"
 #define TERRAIN_VERTEX_SHADER_PATH "../terrainShader.vert"
 #define TERRAIN_FRAGMENT_SHADER_PATH "../terrainShader.frag"
+#define WATER_VERTEX_SHADER_PATH "../waterShader.vert"
+#define WATER_FRAGMENT_SHADER_PATH "../waterShader.frag"
 
 // resource files
 const char* heightMap = "../res/height_map.png";
@@ -40,6 +43,7 @@ glm::mat4 Window::V;
 
 Skybox* Window::skybox;
 Terrain* Window::terrain;
+Water* Window::water;
 Plant* fernPlant;
 Plant* bushPlant;
 Plant* vinePlant;
@@ -57,6 +61,7 @@ void Window::initialize_objects()
 	plantShader = LoadShaders(PLANT_VERTEX_PATH, PLANT_FRAGMENT_PATH);
 	skyboxShader = LoadShaders(SKYBOX_VERTEX_SHADER_PATH, SKYBOX_FRAGMENT_SHADER_PATH);
 	terrainShader = LoadShaders(TERRAIN_VERTEX_SHADER_PATH, TERRAIN_FRAGMENT_SHADER_PATH);
+	waterShader = LoadShaders(WATER_VERTEX_SHADER_PATH, WATER_FRAGMENT_SHADER_PATH);
 
 	// creates the plants
 	// Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
@@ -70,9 +75,14 @@ void Window::initialize_objects()
 
 	// creates the terrain
 	// Parameters: number of vectors (size of height map), size of terrain, height map file path
-	terrain = new Terrain(256, 800, heightMap);
+	float terrainSize = 800.f;
+	float waterHeight = 125.0f;
+	terrain = new Terrain(256, terrainSize, heightMap);
 	terrain->loadTexture(sandTexture, 0);
 	terrain->loadTexture(groundTexture, 1);
+
+	// creates the water
+	water = new Water(terrainSize, waterHeight);
 	
 	// configure initial settings
 	isMousePressed = false;
@@ -86,10 +96,12 @@ void Window::clean_up()
 	delete(vinePlant);
 	delete(skybox);
 	delete(terrain);
+	delete(water);
 
 	glDeleteProgram(plantShader);
 	glDeleteProgram(skyboxShader);
 	glDeleteProgram(terrainShader);
+	glDeleteProgram(waterShader);
 }
 
 GLFWwindow* Window::create_window(int width, int height)
@@ -178,6 +190,14 @@ void Window::display_callback(GLFWwindow* window)
 	GLuint uProjection = glGetUniformLocation(terrainShader, "projection");
 	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
 	terrain->draw(terrainShader);
+
+	// draws the water
+	glUseProgram(waterShader);
+	uView = glGetUniformLocation(waterShader, "view");
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
+	uProjection = glGetUniformLocation(waterShader, "projection");
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
+	water->draw(waterShader);
 
 	// draws the skybox
 	glUseProgram(skyboxShader);
