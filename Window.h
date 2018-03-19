@@ -55,6 +55,12 @@ public:
 	static void cursor_position_callback(GLFWwindow* window, double x, double y);
 	static void scroll_callback(GLFWwindow* window, double x, double y);
 
+	// draw functions
+	static void drawSkybox();
+	static void drawTerrain(int renderType);
+	static void drawWater();
+	static void drawPlants(int renderType);
+
 	// helper function for the cursor position callback
 	static glm::vec3 trackBallMapping(double x, double y);
 };

@@ -31,7 +31,7 @@ protected:
 
 public:
 	Terrain();
-	Terrain(int numVertex, int size, const char* heightMapPath);
+	Terrain(int numVertex, float size, const char* heightMapPath);
 	~Terrain();
 
 	void readHeightMap(const char* heightMapPath);

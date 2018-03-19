@@ -174,39 +174,32 @@ void Window::idle_callback()
 
 void Window::display_callback(GLFWwindow* window)
 {
-	// Clear the color and depth buffers
+	// sets up the water reflection texture
+	float distance = cam_pos.y - water->getHeight();
+	cam_pos.y -= 2 * distance;
+	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+	water->bindFrameBuffer(Water::REFLECTION);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	drawTerrain(Water::REFLECTION);
+	drawPlants(Water::REFLECTION);
+	drawSkybox();
+	cam_pos.y += 2 * distance;
+	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+	
+	// sets up the water refraction texture
+	water->bindFrameBuffer(Water::REFRACTION);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	drawTerrain(Water::REFRACTION);
+	drawPlants(Water::REFRACTION);
+	drawSkybox();
 
-	// draws the plants
-	glUseProgram(plantShader);
-	//fernPlant->draw();
-	//bushPlant->draw();
-	//vinePlant->draw();
-
-	// draws the terrain
-	glUseProgram(terrainShader);
-	GLuint uView = glGetUniformLocation(terrainShader, "view");
-	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
-	GLuint uProjection = glGetUniformLocation(terrainShader, "projection");
-	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
-	terrain->draw(terrainShader);
-
-	// draws the water
-	glUseProgram(waterShader);
-	uView = glGetUniformLocation(waterShader, "view");
-	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
-	uProjection = glGetUniformLocation(waterShader, "projection");
-	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
-	water->draw(waterShader);
-
-	// draws the skybox
-	glUseProgram(skyboxShader);
-	glm::mat4 skyboxView = glm::mat4(glm::mat3(V));
-	uView = glGetUniformLocation(skyboxShader, "view");
-	glUniformMatrix4fv(uView, 1, GL_FALSE, &skyboxView[0][0]);
-	uProjection = glGetUniformLocation(skyboxShader, "projection");
-	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
-	skybox->draw(skyboxShader);
+	// draws the actual scene
+	water->unbindFrameBuffer(width, height);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	drawTerrain(Water::NONE);
+	drawWater();
+	drawPlants(Water::NONE);
+	drawSkybox();
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
@@ -225,6 +218,41 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			// Close the window. This causes the program to also terminate.
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
+
+		// case when lower case a is pressed: move left
+		else if (key == GLFW_KEY_A) {
+			cam_pos.x -= 10.0f;
+		}
+
+		// case when lower case d is pressed: move right
+		else if (key == GLFW_KEY_D) {
+			cam_pos.x += 10.0f;
+		}
+
+		// case when upper case w is pressed: 
+		else if (key == GLFW_KEY_W && mods & GLFW_MOD_SHIFT) {
+		}
+
+		// case when lower case w is pressed: move front
+		else if (key == GLFW_KEY_W) {
+			cam_pos.z += 10.0f;
+		}
+
+		// case when lower case s is pressed: move back
+		else if (key == GLFW_KEY_S) {
+			cam_pos.z -= 10.0f;
+		}
+
+		// case when lower case w is pressed: move up
+		else if (key == GLFW_KEY_O) {
+			cam_pos.y += 10.0f;
+		}
+
+		// case when lower case s is pressed: move down
+		else if (key == GLFW_KEY_L) {
+			cam_pos.y -= 10.0f;
+		}
+
 
 	}
 }
@@ -272,6 +300,55 @@ void Window::scroll_callback(GLFWwindow* window, double x, double y) {
 	// scrolling up has positive values but has to go in the negative z direction
 	cam_pos = glm::vec3(glm::translate(glm::mat4(1.0f), glm::normalize(-cam_pos) * float(y)) * glm::vec4(cam_pos, 1.0f));
 	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+}
+
+void Window::drawSkybox() {
+	glUseProgram(skyboxShader);
+
+	glm::mat4 skyboxView = glm::mat4(glm::mat3(V));
+	GLuint uView = glGetUniformLocation(skyboxShader, "view");
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &skyboxView[0][0]);
+
+	GLuint uProjection = glGetUniformLocation(skyboxShader, "projection");
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
+
+	skybox->draw(skyboxShader);
+}
+
+void Window::drawTerrain(int renderType) {
+	glUseProgram(terrainShader);
+
+	water->loadClippingPlane(terrainShader, renderType);
+
+	GLuint uView = glGetUniformLocation(terrainShader, "view");
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
+
+	GLuint uProjection = glGetUniformLocation(terrainShader, "projection");
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
+
+	terrain->draw(terrainShader);
+}
+
+void Window::drawWater() {
+	glUseProgram(waterShader);
+
+	GLuint uView = glGetUniformLocation(waterShader, "view");
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
+
+	GLuint uProjection = glGetUniformLocation(waterShader, "projection");
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
+
+	water->draw(waterShader);
+}
+
+void Window::drawPlants(int renderType) {
+	glUseProgram(plantShader);
+
+	water->loadClippingPlane(plantShader, renderType);
+
+	fernPlant->draw();
+	//bushPlant->draw();
+	//vinePlant->draw();
 }
 
 glm::vec3 Window::trackBallMapping(double x, double y) {

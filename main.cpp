@@ -57,6 +57,8 @@ void setup_opengl_settings()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	// Disable backface culling to render both sides of polygons
 	glEnable(GL_CULL_FACE);
+	// Enable clipping (for water effects)
+	glEnable(GL_CLIP_DISTANCE0);
 	glCullFace(GL_BACK);
 	// Set clear color
 	glClearColor(0.05f, 0.8f, 0.85f, 1.0f);

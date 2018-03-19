@@ -27,6 +27,8 @@ Skybox::Skybox(std::vector<const char*> cubeLocations) {
 Skybox::~Skybox() {
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
+
+	glDeleteTextures(1, &textureId);
 }
 
 void Skybox::initializeVertices() {

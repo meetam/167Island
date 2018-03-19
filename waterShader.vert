@@ -6,7 +6,10 @@ layout (location = 0) in vec3 position;
 uniform mat4 view;			// from Window
 uniform mat4 projection;	// from Window
 
+out vec4 projectionCoordinates;
+
 void main()
 {
-	gl_Position = projection * view * vec4(position, 1.0f);
+	projectionCoordinates = projection * view * vec4(position, 1.0f);
+	gl_Position = projectionCoordinates;
 }
