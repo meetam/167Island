@@ -147,11 +147,3 @@ void Plant::draw()
         plantSegments[i].draw();
     }
 }
-
-void Plant::scale(glm::mat4 scaleMatrix)
-{
-    for (int i = 0; i < plantSegments.size(); i++)
-    {
-        plantSegments[i].scale(scaleMatrix);
-    }
-}

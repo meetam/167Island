@@ -49,7 +49,6 @@ public:
     
     void makePoints();
     void draw();
-    void scale(glm::mat4 scaleMatrix);
 };
 
 #endif /* Plant_h */

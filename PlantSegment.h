@@ -39,7 +39,6 @@ private:
 public:
     PlantSegment(GLuint shaderProgram, std::vector<glm::vec3> p, glm::vec3 lineColor);
     void draw();
-    void scale(glm::mat4 scaleMatrix);
 };
 
 #endif /* PlantSegment_h */

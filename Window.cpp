@@ -43,6 +43,8 @@ std::vector<const char*> skyFiles = {
 #define SKYBOX_FRAGMENT_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/skyboxShader.frag"
 #define TERRAIN_VERTEX_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/terrainShader.vert"
 #define TERRAIN_FRAGMENT_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/terrainShader.frag"
+#define WATER_VERTEX_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/waterShader.vert"
+#define WATER_FRAGMENT_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/waterShader.frag"
 
 // resource files
 const char* heightMap = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/height_map.png";
@@ -70,9 +72,9 @@ glm::mat4 Window::V;
 Skybox* Window::skybox;
 Terrain* Window::terrain;
 Water* Window::water;
-Plant* fernPlant;
-Plant* bushPlant;
-Plant* vinePlant;
+std::vector<Plant*> fernPlants;
+std::vector<Plant*> bushPlants;
+std::vector<Plant*> vinePlants;
 
 const double MOUSE_ROTATION_FACTOR = 0.25;
 const double MOUSE_TRANSLATION_FACTOR = 0.04;
@@ -89,11 +91,8 @@ void Window::initialize_objects()
 	terrainShader = LoadShaders(TERRAIN_VERTEX_SHADER_PATH, TERRAIN_FRAGMENT_SHADER_PATH);
 	waterShader = LoadShaders(WATER_VERTEX_SHADER_PATH, WATER_FRAGMENT_SHADER_PATH);
 
-	// creates the plants
-	// Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
-	fernPlant = new Plant("fern", plantShader, glm::vec3(450.0f, -300.0f, 1000.0f), glm::vec3(0.42f, 0.557f, 0.137f), 60.0f, 25.0f, 20.0f, 5);
-	bushPlant = new Plant("bush", plantShader, glm::vec3(0.0f, -300.0f, 500.0f), glm::vec3(0.133f, 0.545f, 0.133f), 95.0f, 22.5f, 5.0f, 4);
-	vinePlant = new Plant("vine", plantShader, glm::vec3(100.0f, 100.0f, -100.0f), glm::vec3(0.133f, 0.7f, 0.133f), 90.0f, 25.7f, 0.1f, 5);
+    // creates the plants
+    initialize_plants();
 
 	// creates the skybox
 	// Parameters: vector of file paths
@@ -114,12 +113,134 @@ void Window::initialize_objects()
 	isMousePressed = false;
 }
 
+void Window::initialize_plants()
+{
+    /**
+     * POSITIONS GUIDE:
+     *     left - positive x
+     *     right - negative x
+     *     back - positive z
+     *     forward - negative z
+     */
+    
+    // creates the fern plants
+    glm::vec3 fernPos[] = {
+        // cluster 1
+        glm::vec3(260.0f, 150.0f, -240.0f),
+        glm::vec3(270.0f, 150.0f, -260.0f),
+        glm::vec3(250.0f, 150.0f, -280.0f),
+        glm::vec3(230.0f, 160.0f, -280.0f),
+        glm::vec3(230.0f, 160.0f, -260.0f),
+        // cluster 2
+        glm::vec3(230.0f, 150.0f, 100.0f),
+        glm::vec3(230.0f, 160.0f, 50.0f),
+        glm::vec3(210.0f, 160.0f, 30.0f),
+        glm::vec3(160.0f, 160.0f, 30.0f),
+        // cluster 3
+        glm::vec3(0.0f, 140.0f, 150.0f),
+        glm::vec3(-40.0f, 140.0f, 150.0f),
+        glm::vec3(-50.0f, 140.0f, 170.0f),
+        glm::vec3(-50.0f, 140.0f, 180.0f),
+        glm::vec3(-80.0f, 140.0f, 180.0f),
+        // cluster 4
+        glm::vec3(-210.0f, 150.0f, -200.0f),
+        glm::vec3(-210.0f, 140.0f, -320.0f),
+        glm::vec3(-240.0f, 150.0f, -320.0f),
+        glm::vec3(-250.0f, 140.0f, -360.0f),
+        glm::vec3(-210.0f, 140.0f, -370.0f)
+    };
+    float drawSize = 1.0f;
+    float startAngle = 60.0f;
+    for (int i = 0; i < 19; i++)
+    {
+        // Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
+        Plant * fernPlant = new Plant("fern", plantShader, fernPos[i], glm::vec3(0.42f, 0.557f, 0.137f), startAngle, 25.0f, drawSize, 4);
+        fernPlants.push_back(fernPlant);
+        if (i % 2 == 0)
+            startAngle += 20.0f;
+        else
+            startAngle -= 20.0f;
+    }
+    
+    // creates the bush plants
+    glm::vec3 bushPos[] = {
+        glm::vec3(240.0f, 140.0f, -240.0f),
+        glm::vec3(200.0f, 120.0f, 100.0f),
+        glm::vec3(0.0f, 150.0f, 200.0f),
+        glm::vec3(-200.0f, 120.0f, 0.0f)
+    };
+    drawSize = 2.0f;
+    int iterations = 3;
+    for (int i = 0; i < 4; i++)
+    {
+        // Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
+        Plant * bushPlant = new Plant("bush", plantShader, bushPos[i], glm::vec3(0.133f, 0.545f, 0.133f), 95.0f, 22.5f, drawSize, iterations);
+        bushPlants.push_back(bushPlant);
+        if (i % 2 == 0)
+            drawSize -= 1.0f;
+        else
+            drawSize += 1.0f;
+        if (i == 1)
+            iterations = 4;
+    }
+    
+    
+    // creates the vine plants
+    glm::vec3 vinePos[] = {
+        glm::vec3(390.0f, 120.0f, -390.0f),
+        glm::vec3(240.0f, 120.0f, -390.0f),
+        glm::vec3(90.0f, 120.0f, -390.0f),
+        glm::vec3(-60.0f, 120.0f, -390.0f),
+        glm::vec3(-110.0f, 120.0f, -390.0f),
+        glm::vec3(-120.0f, 120.0f, -290.0f),
+        glm::vec3(-170.0f, 150.0f, -200.0f),
+        glm::vec3(-240.0f, 120.0f, -150.0f),
+        glm::vec3(-250.0f, 120.0f, -90.0f),
+        glm::vec3(-250.0f, 120.0f, 60.0f),
+        glm::vec3(-300.0f, 120.0f, 200.0f),
+        glm::vec3(-390.0f, 120.0f, 390.0f),
+        glm::vec3(-320.0f, 120.0f, 390.0f),
+        glm::vec3(-220.0f, 120.0f, 380.0f),
+        glm::vec3(-120.0f, 120.0f, 370.0f),
+        glm::vec3(0.0f, 120.0f, 370.0f),
+        glm::vec3(0.0f, 120.0f, 250.0f),
+        glm::vec3(200.0f, 120.0f, 370.0f),
+        glm::vec3(390.0f, 120.0f, 370.0f),
+        glm::vec3(390.0f, 120.0f, 200.0f)
+    };
+    drawSize = 0.1f;
+    for (int i = 0; i < 20; i++)
+    {
+        // Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
+        Plant * vinePlant = new Plant("vine", plantShader, vinePos[i], glm::vec3(0.133f, 0.7f, 0.133f), 90.0f, 25.7f, drawSize, 5);
+        vinePlants.push_back(vinePlant);
+        
+        if (i % 3 == 0)
+        {
+            drawSize += 0.1f;
+        }
+        else if (i % 3 == 1)
+        {
+            drawSize -= 0.1f;
+        }
+    }
+}
+
 // Treat this as a destructor function. Delete dynamically allocated memory here.
 void Window::clean_up()
 {
-	delete(fernPlant);
-	delete(bushPlant);
-	delete(vinePlant);
+    for (Plant* fernPlant : fernPlants)
+    {
+        delete(fernPlant);
+    }
+    for (Plant* bushPlant : bushPlants)
+    {
+        delete(bushPlant);
+    }
+    for (Plant * vinePlant : vinePlants)
+    {
+        delete(vinePlant);
+    }
 	delete(skybox);
 	delete(terrain);
 	delete(water);
@@ -232,7 +353,18 @@ void Window::display_callback(GLFWwindow* window)
     glUseProgram(plantShader);
     //fernPlant->draw();
     //bushPlant->draw();
-    vinePlant->draw();
+    for (Plant* vPlant : vinePlants)
+    {
+        vPlant->draw();
+    }
+    for (Plant* bPlant : bushPlants)
+    {
+        bPlant->draw();
+    }
+    for (Plant* fPlant : fernPlants)
+    {
+        fPlant->draw();
+    }
     
     //glUseProgram(fogShader);
 

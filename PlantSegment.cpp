@@ -58,8 +58,3 @@ void PlantSegment::draw()
     glBindVertexArray(0);
 }
 
-void PlantSegment::scale(glm::mat4 scaleMatrix)
-{
-    toWorld = scaleMatrix * toWorld;
-}
-

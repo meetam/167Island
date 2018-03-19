@@ -22,6 +22,7 @@
 #include "Skybox.h"
 #include "Terrain.h"
 #include "Water.h"
+#include "Plant.h"
 
 class Window
 {
@@ -43,6 +44,7 @@ public:
 	static double yPrevious;
 
 	static void initialize_objects();
+    static void initialize_plants();
 	static void clean_up();
 	static GLFWwindow* create_window(int width, int height);
 	
