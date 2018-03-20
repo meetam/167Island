@@ -3,9 +3,10 @@
 
 Water::Water() { }
 
-Water::Water(float size, float height, glm::vec3 color) {
+Water::Water(float size, float height, float speed, glm::vec3 color) {
 	this->size = size;
 	this->height = height;
+	this->speed = speed;
 	this->waterColor = color;
 	this->distortionOffset = 0.0f;
 	initializeVertices(size, height);
@@ -26,14 +27,12 @@ Water::~Water() {
 	glDeleteTextures(1, &reflectionDepthTexture);
 	glDeleteTextures(1, &refractionColorTexture);
 	glDeleteTextures(1, &refractionDepthTexture);
+	glDeleteTextures(1, &dudvMapTexture);
+	glDeleteTextures(1, &normalMapTexture);
 }
 
 float Water::getHeight() {
 	return this->height;
-}
-
-float Water::getWaveSpeed() {
-	return 0.001f;
 }
 
 void Water::initializeVertices(float size, float height) {
@@ -158,7 +157,7 @@ void Water::readNormalMap(const char* normalMapPath) {
 }
 
 void Water::update() {
-	distortionOffset += getWaveSpeed();
+	distortionOffset += speed;
 	if (distortionOffset > 1.0f) distortionOffset -= 1.0f;
 }
 
@@ -184,7 +183,7 @@ void Water::unbindFrameBuffer(int windowWidth, int windowHeight) {
 
 void Water::loadClippingPlane(GLuint shaderProgram, int type) {
 	if (type == REFLECTION) {
-		glm::vec4 clippingPlane = glm::vec4(0.0f, 1.0f, 0.0f, -height);
+		glm::vec4 clippingPlane = glm::vec4(0.0f, 1.0f, 0.0f, -height + 1.0f);
 		GLuint uClippingPlane = glGetUniformLocation(shaderProgram, "clippingPlane");
 		glUniform4fv(uClippingPlane, 1, &clippingPlane[0]);
 	}
@@ -201,6 +200,10 @@ void Water::loadClippingPlane(GLuint shaderProgram, int type) {
 		GLuint uClippingPlane = glGetUniformLocation(shaderProgram, "clippingPlane");
 		glUniform4fv(uClippingPlane, 1, &clippingPlane[0]);
 	}
+}
+
+void Water::loadHeight(GLuint shaderProgram) {
+	glUniform1f(glGetUniformLocation(shaderProgram, "waterHeight"), height);
 }
 
 void Water::draw(GLuint shaderProgram)

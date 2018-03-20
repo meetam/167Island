@@ -4,17 +4,19 @@
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 
-out vec3 outPosition;
-out vec3 outNormal;
+uniform float size;			// size of terrain (from Terrain)
+uniform mat4 view;			// view matrix (from Window)
+uniform mat4 projection;	// projection matrix (from Window)
+uniform vec4 clippingPlane; // clipping plane for reflection/refraction purposes (from Water)
 
-uniform mat4 view;			// from Window
-uniform mat4 projection;	// from Window
-uniform vec4 clippingPlane; // from Water
+out vec2 texturePosition;
+out float height;
 
 void main()
 {
-	outPosition = position;
-    outNormal = normal;
+	texturePosition = position.xz / size + 0.5f;
+	height = position.y;
+
 	gl_Position = projection * view * vec4(position, 1.0f);
 	gl_ClipDistance[0] = dot(vec4(position, 1.0f), clippingPlane);
 }

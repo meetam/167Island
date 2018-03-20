@@ -24,19 +24,23 @@ protected:
 	std::vector<GLfloat> normals;
 	std::vector<GLuint> indices;
 
+	// terrain information variables
+	float numVertex;	// number of vertices on each side
+	float size;			// size of terrain in world coordinates (from -size/2 to size/2)
+
 	// shader program variables
 	GLuint VAO, VBO_vertex, VBO_normal, EBO;
 
 	// texture variables
-	unsigned int textureId[2];
+	unsigned int textureId[3];
 
 public:
 	Terrain();
-	Terrain(int numVertex, float size, const char* heightMapPath);
+	Terrain(float size, const char* heightMapPath);
 	~Terrain();
 
 	void readHeightMap(const char* heightMapPath);
-	void calculateNormals(int numVertex);
+	void calculateNormals();
 	void loadTexture(const char* texturePath, int index);
 	void draw(GLuint shaderProgram);
 };
