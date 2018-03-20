@@ -7,11 +7,14 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform vec3 color;
+uniform vec4 clippingPlane;
 
 out vec3 normalColor;
 
 void main()
 {
-    gl_Position = projection * view *  model * vec4(position, 1.0f);
+	vec4 worldCoordinates = model * vec4(position, 1.0f);
+    gl_Position = projection * view * worldCoordinates;
+    gl_ClipDistance[0] = dot(worldCoordinates, clippingPlane);
     normalColor = color;
 }

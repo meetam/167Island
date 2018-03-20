@@ -27,11 +27,12 @@ protected:
 	// shader program variables
 	GLuint VAO, VBO_vertex, VBO_normal, EBO;
 
+	// texture variables
 	unsigned int textureId[2];
 
 public:
 	Terrain();
-	Terrain(int numVertex, int size, const char* heightMapPath);
+	Terrain(int numVertex, float size, const char* heightMapPath);
 	~Terrain();
 
 	void readHeightMap(const char* heightMapPath);

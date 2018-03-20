@@ -15,22 +15,59 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <iostream>
 #include <vector>
 
 class Water
 {
 protected:
+	// reflection and refraction variables
+	static const int REFLECTION_WIDTH = 320;	// half of window resolution (see main.cpp)
+	static const int REFLECTION_HEIGHT = 240;
+	static const int REFRACTION_WIDTH = 640;	// full window resolution
+	static const int REFRACTION_HEIGHT = 480;
+
+	float size, height;
+	glm::vec3 waterColor;
+	float distortionOffset;
 	std::vector<GLfloat> vertices;
 
 	// shader program variables
 	GLuint VAO, VBO;
+	GLuint FBO_reflection, FBO_refraction;
+	unsigned int reflectionColorTexture, reflectionDepthTexture;
+	unsigned int refractionColorTexture, refractionDepthTexture;
+	unsigned int dudvMapTexture;
+	unsigned int normalMapTexture;
 
 public:
+	static const int NONE = -1;
+	static const int REFLECTION = 0;
+	static const int REFRACTION = 1;
+
 	Water();
-	Water(float size, float height);
+	Water(float size, float height, glm::vec3 color);
 	~Water();
 
+	float getHeight();
+	float getWaveSpeed(); // used for animation
+
+	// helper methods for initialization
+	void initializeVertices(float size, float height);
+	void initializeVertexBuffer();
+	void initializeFrameBuffer(GLuint* FBO, unsigned int* colorTextureId, unsigned int* depthTextureId, int width, int height);
+	void createColorTexture(unsigned int* textureId, int width, int height);
+	void createDepthTexture(unsigned int* textureId, int width, int height);
+
+	void readDudvMap(const char* dudvMapPath);
+	void readNormalMap(const char* normalMapPath);
+	void update();
+
+	void bindFrameBuffer(int type);
+	void unbindFrameBuffer(int windowWidth, int windowHeight);
+	void loadClippingPlane(GLuint shaderProgram, int type);
 	void draw(GLuint shaderProgram);
+
 };
 
 #endif

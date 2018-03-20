@@ -14,8 +14,8 @@ GLint terrainShader;
 GLint waterShader;
 GLint fogShader;
 
-/*// On some systems you need to change this to the absolute path
-#define PLANT_VERTEX_PATH "../plantShader.vert"
+// On some systems you need to change this to the absolute path
+/*#define PLANT_VERTEX_PATH "../plantShader.vert"
 #define PLANT_FRAGMENT_PATH "../plantShader.frag"
 #define SKYBOX_VERTEX_SHADER_PATH "../skyboxShader.vert"
 #define SKYBOX_FRAGMENT_SHADER_PATH "../skyboxShader.frag"
@@ -30,6 +30,8 @@ GLint fogShader;
 const char* heightMap = "../res/height_map.png";
 const char* sandTexture = "../res/texture_sand.jpg";
 const char* groundTexture = "../res/texture_ground.jpg";
+const char* dudvMap = "../res/dudv.png";
+const char* normalMap = "../res/normal.png";
 std::vector<const char*> skyFiles = {
 	"../res/skybox_sky/ss_ft.tga",
 	"../res/skybox_sky/ss_bk.tga",
@@ -55,6 +57,8 @@ std::vector<const char*> skyFiles = {
 const char* heightMap = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/height_map.png";
 const char* sandTexture = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/texture_sand.jpg";
 const char* groundTexture = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/texture_ground.jpg";
+const char* dudvMap = "/Users/Meeta/Desktop/CSE 167/HW4/HW4//res/dudv.png";
+const char* normalMap = "/Users/Meeta/Desktop/CSE 167/HW4/HW4//res/normal.png";
 std::vector<const char*> skyFiles = {
     "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/skybox_sky/ss_ft.tga",
     "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/skybox_sky/ss_bk.tga",
@@ -65,7 +69,7 @@ std::vector<const char*> skyFiles = {
 };
 
 // Default camera parameters
-glm::vec3 cam_pos(0.0f, 0.0f, -20.0f);		// e  | Position of camera
+glm::vec3 cam_pos(0.0f, 175.0f, -400.0f);		// e  | Position of camera
 glm::vec3 cam_look_at(0.0f, 0.0f, 0.0f);	// d  | This is where the camera looks at
 glm::vec3 cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
 
@@ -77,6 +81,8 @@ glm::mat4 Window::V;
 Skybox* Window::skybox;
 Terrain* Window::terrain;
 Water* Window::water;
+glm::vec3 Window::pointLightPosition;
+glm::vec3 Window::pointLightColor;
 std::vector<Plant*> fernPlants;
 std::vector<Plant*> bushPlants;
 std::vector<Plant*> vinePlants;
@@ -101,21 +107,26 @@ void Window::initialize_objects()
     initialize_plants();
 
 	// creates the skybox
-	// Parameters: vector of file paths
 	skybox = new Skybox(skyFiles);
 
 	// creates the terrain
-	// Parameters: number of vectors (size of height map), size of terrain, height map file path
 	float terrainSize = 800.f;
-	float waterHeight = 125.0f;
 	terrain = new Terrain(256, terrainSize, heightMap);
 	terrain->loadTexture(sandTexture, 0);
 	terrain->loadTexture(groundTexture, 1);
 
 	// creates the water
-	water = new Water(terrainSize, waterHeight);
+	float waterHeight = 125.0f;
+	glm::vec3 beachWaterColor = glm::vec3(0.03f, 0.53f, 0.58f);
+	water = new Water(terrainSize, waterHeight, beachWaterColor);
+	water->readDudvMap(dudvMap);
+	water->readNormalMap(normalMap);
+
+	// configures the point light
+	pointLightPosition = glm::vec3(0.0f, 300.0f, 0.0f);
+	pointLightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	
-	// configure initial settings
+	// configures initial settings
 	isMousePressed = false;
 }
 
@@ -323,54 +334,40 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 
 void Window::idle_callback()
 {
+	water->update();
 }
 
 void Window::display_callback(GLFWwindow* window)
 {
-	// Clear the color and depth buffers
+	// sets up the water reflection texture
+	float cameraToWaterDistance = cam_pos.y - water->getHeight();
+	float lookAtToWaterDistance = cam_look_at.y - water->getHeight();
+	cam_pos.y -= 2 * cameraToWaterDistance;
+	cam_look_at.y -= 2 * lookAtToWaterDistance;
+	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+	water->bindFrameBuffer(Water::REFLECTION);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	drawTerrain(Water::REFLECTION);
+	drawPlants(Water::REFLECTION);
+	drawSkybox();
+	cam_pos.y += 2 * cameraToWaterDistance;
+	cam_look_at.y += 2 * lookAtToWaterDistance;
+	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+	
+	// sets up the water refraction texture
+	water->bindFrameBuffer(Water::REFRACTION);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	drawTerrain(Water::REFRACTION);
+	drawPlants(Water::REFRACTION);
+	drawSkybox();
 
-	// draws the terrain
-	glUseProgram(terrainShader);
-	GLuint uView = glGetUniformLocation(terrainShader, "view");
-	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
-	GLuint uProjection = glGetUniformLocation(terrainShader, "projection");
-	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
-	terrain->draw(terrainShader);
-
-	// draws the water
-	glUseProgram(waterShader);
-	uView = glGetUniformLocation(waterShader, "view");
-	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
-	uProjection = glGetUniformLocation(waterShader, "projection");
-	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
-	water->draw(waterShader);
-
-	// draws the skybox
-	glUseProgram(skyboxShader);
-    glm::mat4 skyboxView = glm::mat4(glm::mat3(V));
-    uView = glGetUniformLocation(skyboxShader, "view");
-    glUniformMatrix4fv(uView, 1, GL_FALSE, &skyboxView[0][0]);
-    uProjection = glGetUniformLocation(skyboxShader, "projection");
-    glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
-    skybox->draw(skyboxShader);
-    
-    // draws the plants
-    glUseProgram(fogShader);
-    for (Plant* vPlant : vinePlants)
-    {
-        vPlant->draw();
-    }
-    for (Plant* bPlant : bushPlants)
-    {
-        bPlant->draw();
-    }
-    for (Plant* fPlant : fernPlants)
-    {
-        fPlant->draw();
-    }
-    
-    //glUseProgram(fogShader);
+	// draws the actual scene
+	water->unbindFrameBuffer(width, height);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	drawTerrain(Water::NONE);
+	drawWater();
+	drawPlants(Water::NONE);
+	drawSkybox();
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
@@ -390,6 +387,41 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
 
+		// case when lower case a is pressed: move left
+		else if (key == GLFW_KEY_A) {
+			cam_pos.x += 10.0f;
+			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+		}
+
+		// case when lower case d is pressed: move right
+		else if (key == GLFW_KEY_D) {
+			cam_pos.x -= 10.0f;
+			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+		}
+
+		// case when lower case w is pressed: move front
+		else if (key == GLFW_KEY_W) {
+			cam_pos.z += 10.0f;
+			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+		}
+
+		// case when lower case s is pressed: move back
+		else if (key == GLFW_KEY_S) {
+			cam_pos.z -= 10.0f;
+			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+		}
+
+		// case when lower case w is pressed: move up
+		else if (key == GLFW_KEY_O) {
+			cam_pos.y += 10.0f;
+			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+		}
+
+		// case when lower case s is pressed: move down
+		else if (key == GLFW_KEY_L) {
+			cam_pos.y -= 10.0f;
+			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+		}
 	}
 }
 
@@ -420,7 +452,7 @@ void Window::cursor_position_callback(GLFWwindow* window, double x, double y) {
 				
 				glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), rotationAngle, rotationAxis);
 				cam_pos = glm::vec3(rotationMatrix * glm::vec4(cam_pos, 1.0f));
-				cam_up = glm::inverse(glm::transpose(glm::mat3(rotationMatrix))) * cam_up;
+				//cam_up = glm::inverse(glm::transpose(glm::mat3(rotationMatrix))) * cam_up;
 				V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 			}
 		}
@@ -436,6 +468,73 @@ void Window::scroll_callback(GLFWwindow* window, double x, double y) {
 	// scrolling up has positive values but has to go in the negative z direction
 	cam_pos = glm::vec3(glm::translate(glm::mat4(1.0f), glm::normalize(-cam_pos) * float(y)) * glm::vec4(cam_pos, 1.0f));
 	V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+}
+
+void Window::drawSkybox() {
+	glUseProgram(skyboxShader);
+
+	glm::mat4 skyboxView = glm::mat4(glm::mat3(V));
+	GLuint uView = glGetUniformLocation(skyboxShader, "view");
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &skyboxView[0][0]);
+
+	GLuint uProjection = glGetUniformLocation(skyboxShader, "projection");
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
+
+	skybox->draw(skyboxShader);
+}
+
+void Window::drawTerrain(int renderType) {
+	glUseProgram(terrainShader);
+
+	water->loadClippingPlane(terrainShader, renderType);
+
+	GLuint uView = glGetUniformLocation(terrainShader, "view");
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
+
+	GLuint uProjection = glGetUniformLocation(terrainShader, "projection");
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
+
+	terrain->draw(terrainShader);
+}
+
+void Window::drawWater() {
+	glUseProgram(waterShader);
+
+	GLuint uView = glGetUniformLocation(waterShader, "view");
+	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
+
+	GLuint uProjection = glGetUniformLocation(waterShader, "projection");
+	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &P[0][0]);
+
+	GLuint uCameraPosition = glGetUniformLocation(waterShader, "cameraPosition");
+	glUniform3fv(uCameraPosition, 1, &cam_pos[0]);
+
+	GLuint uLightPosition = glGetUniformLocation(waterShader, "lightPosition");
+	glUniform3fv(uLightPosition, 1, &pointLightPosition[0]);
+
+	GLuint uLightColor = glGetUniformLocation(waterShader, "lightColor");
+	glUniform3fv(uLightColor, 1, &pointLightColor[0]);
+
+	water->draw(waterShader);
+}
+
+void Window::drawPlants(int renderType) {
+	glUseProgram(fogShader);
+
+	water->loadClippingPlane(plantShader, renderType);
+
+	for (Plant* vPlant : vinePlants)
+	{
+		vPlant->draw();
+	}
+	for (Plant* bPlant : bushPlants)
+	{
+		bPlant->draw();
+	}
+	for (Plant* fPlant : fernPlants)
+	{
+		fPlant->draw();
+	}
 }
 
 glm::vec3 Window::trackBallMapping(double x, double y) {

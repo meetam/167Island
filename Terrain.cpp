@@ -4,7 +4,7 @@
 
 Terrain::Terrain() { }
 
-Terrain::Terrain(int numVertex, int size, const char* heightMapPath) {
+Terrain::Terrain(int numVertex, float size, const char* heightMapPath) {
 	// calculates the vertex positions
 	int i = 0;
 	for (int z = -numVertex / 2; z < numVertex / 2; z++) {
@@ -74,6 +74,8 @@ Terrain::~Terrain() {
 	glDeleteBuffers(1, &VBO_vertex);
 	glDeleteBuffers(1, &VBO_normal);
 	glDeleteBuffers(1, &EBO);
+
+	glDeleteTextures(2, &textureId[0]);
 }
 
 void Terrain::readHeightMap(const char* heightMapPath) {
@@ -155,8 +157,8 @@ void Terrain::loadTexture(const char* texturePath, int index) {
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	unsigned char *data = stbi_load(texturePath, &w, &h, &numColorChannels, 0);
 

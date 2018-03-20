@@ -36,6 +36,8 @@ public:
 	static Skybox* skybox;
 	static Terrain* terrain;
 	static Water* water;
+	static glm::vec3 pointLightPosition;
+	static glm::vec3 pointLightColor;
 
 	// mouse-related variables
 	static bool isMousePressed;
@@ -56,6 +58,12 @@ public:
 	static void mouse_button_callback(GLFWwindow* window, int key, int action, int mods);
 	static void cursor_position_callback(GLFWwindow* window, double x, double y);
 	static void scroll_callback(GLFWwindow* window, double x, double y);
+
+	// draw functions
+	static void drawSkybox();
+	static void drawTerrain(int renderType);
+	static void drawWater();
+	static void drawPlants(int renderType);
 
 	// helper function for the cursor position callback
 	static glm::vec3 trackBallMapping(double x, double y);
