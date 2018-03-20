@@ -45,11 +45,10 @@ void PlantSegment::draw()
     glUniformMatrix4fv(uView, 1, GL_FALSE, &Window::V[0][0]);
     glUniform3f(uColor, color.x, color.y, color.z);
     
-    
     // Add fog
-    //glClearColor(0.5, 0.5, 0.5, 1);//gray color, same as fog color
-    //glClearDepth(1);
-    //glEnable(GL_DEPTH_TEST);
+    glClearColor(0.5, 0.5, 0.5, 1);//gray color, same as fog color
+    glClearDepth(1);
+    glEnable(GL_DEPTH_TEST);
     
     glBindVertexArray(VAO);
     glDrawArrays(GL_LINE_STRIP, 0, points.size());

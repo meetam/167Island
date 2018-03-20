@@ -94,6 +94,7 @@ void Plant::makePoints()
     stack<pair<glm::vec3, float>> s;
     
     float angle = startAngle;
+    float zAngle = 20.0f;
     glm::vec3 pos = position;
     vector<glm::vec3> lineSegment;
     lineSegment.push_back(pos);
@@ -106,17 +107,23 @@ void Plant::makePoints()
             float yPos = pos.y + drawSize * sin(glm::radians(angle));
             pos.x = xPos;
             pos.y = yPos;
+            if (type != "vine") {
+                float zPos = pos.z + drawSize * sin(glm::radians(zAngle));
+                pos.z = zPos;
+            }
             lineSegment.push_back(pos);
         }
         
         else if (rule[i] == '-')
         {
             angle += angleDelta;
+            zAngle += angleDelta;
         }
         
         else if (rule[i] == '+')
         {
             angle -= angleDelta;
+            zAngle -= angleDelta;
         }
         
         else if (rule[i] == '[')

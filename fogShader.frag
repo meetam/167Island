@@ -36,7 +36,7 @@ void main(){
     rim = smoothstep(0.6, 1.0, rim);
     vec3 finalRim = RimColor * vec3(rim, rim, rim);
     //get all lights and texture
-    vec3 lightColor = finalRim + diffuse + tex1 + normalColor;
+    vec3 lightColor = normalColor; //finalRim + diffuse + tex1 + normalColor;
     
     vec3 finalColor = vec3(0, 0, 0);
     
