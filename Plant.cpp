@@ -105,10 +105,12 @@ void Plant::makePoints()
         {
             float xPos = pos.x + drawSize * cos(glm::radians(angle));
             float yPos = pos.y + drawSize * sin(glm::radians(angle));
-            float zPos = pos.z + drawSize * sin(glm::radians(zAngle));
             pos.x = xPos;
             pos.y = yPos;
-            pos.z = zPos;
+            if (type != "vine") {
+                float zPos = pos.z + drawSize * sin(glm::radians(zAngle));
+                pos.z = zPos;
+            }
             lineSegment.push_back(pos);
         }
         

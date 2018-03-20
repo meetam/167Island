@@ -72,6 +72,10 @@ std::vector<const char*> skyFiles = {
 glm::vec3 cam_pos(0.0f, 175.0f, -400.0f);		// e  | Position of camera
 glm::vec3 cam_look_at(0.0f, 0.0f, 0.0f);	// d  | This is where the camera looks at
 glm::vec3 cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
+float cam_horiz_angle = 90.0f;
+float cam_radius = 400.0f;
+bool isKeyPressed = false;
+int keyPressed;
 
 int Window::width;
 int Window::height;
@@ -201,7 +205,6 @@ void Window::initialize_plants()
             iterations = 4;
     }
     
-    
     // creates the vine plants
     glm::vec3 vinePos[] = {
         glm::vec3(390.0f, 120.0f, -390.0f),
@@ -233,29 +236,22 @@ void Window::initialize_plants()
         vinePlants.push_back(vinePlant);
         
         if (i % 3 == 0)
-        {
             drawSize += 0.1f;
-        }
         else if (i % 3 == 1)
-        {
             drawSize -= 0.1f;
-        }
     }
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
 void Window::clean_up()
 {
-    for (Plant* fernPlant : fernPlants)
-    {
+    for (Plant* fernPlant : fernPlants) {
         delete(fernPlant);
     }
-    for (Plant* bushPlant : bushPlants)
-    {
+    for (Plant* bushPlant : bushPlants) {
         delete(bushPlant);
     }
-    for (Plant * vinePlant : vinePlants)
-    {
+    for (Plant * vinePlant : vinePlants) {
         delete(vinePlant);
     }
 	delete(skybox);
@@ -335,6 +331,11 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 void Window::idle_callback()
 {
 	water->update();
+    
+    if (isKeyPressed)
+    {
+        update_camera();
+    }
 }
 
 void Window::display_callback(GLFWwindow* window)
@@ -386,43 +387,90 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			// Close the window. This causes the program to also terminate.
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
+        
+        else
+        {
+            isKeyPressed = true;
+            keyPressed = key;
+            update_camera();
+        }
+    }
+    
+    else if (action == GLFW_RELEASE)
+    {
+        isKeyPressed = false;
+    }
+}
 
-		// case when lower case a is pressed: move left
-		else if (key == GLFW_KEY_A) {
-			cam_pos.x += 10.0f;
-			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
-		}
-
-		// case when lower case d is pressed: move right
-		else if (key == GLFW_KEY_D) {
-			cam_pos.x -= 10.0f;
-			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
-		}
-
-		// case when lower case w is pressed: move front
-		else if (key == GLFW_KEY_W) {
-			cam_pos.z += 10.0f;
-			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
-		}
-
-		// case when lower case s is pressed: move back
-		else if (key == GLFW_KEY_S) {
-			cam_pos.z -= 10.0f;
-			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
-		}
-
-		// case when lower case w is pressed: move up
-		else if (key == GLFW_KEY_O) {
-			cam_pos.y += 10.0f;
-			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
-		}
-
-		// case when lower case s is pressed: move down
-		else if (key == GLFW_KEY_L) {
-			cam_pos.y -= 10.0f;
-			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
-		}
-	}
+void Window::update_camera()
+{
+    // case when lower case a is pressed: move left
+    if (keyPressed == GLFW_KEY_A) {
+        cam_pos.x += -10.0f * cos(glm::radians(cam_horiz_angle + 90.0f));
+        cam_pos.z += 10.0f * sin(glm::radians(cam_horiz_angle + 90.0f));
+        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+    }
+    
+    // case when lower case d is pressed: move right
+    else if (keyPressed == GLFW_KEY_D) {
+        cam_pos.x += -10.0f * cos(glm::radians(cam_horiz_angle - 90.0f));
+        cam_pos.z += 10.0f * sin(glm::radians(cam_horiz_angle - 90.0f));
+        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+    }
+    
+    // case when lower case w is pressed: move front
+    else if (keyPressed == GLFW_KEY_W) {
+        cam_pos.x += -10.0f * cos(glm::radians(cam_horiz_angle));
+        cam_pos.z += 10.0f * sin(glm::radians(cam_horiz_angle));
+        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+    }
+    
+    // case when lower case s is pressed: move back
+    else if (keyPressed == GLFW_KEY_S) {
+        cam_pos.x += -10.0f * cos(glm::radians(cam_horiz_angle + 180.0f));
+        cam_pos.z += 10.0f * sin(glm::radians(cam_horiz_angle + 180.0f));
+        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+    }
+    
+    // case when lower case g is pressed: turn left
+    else if (keyPressed == GLFW_KEY_H) {
+        cam_horiz_angle += 10.0f;
+        cam_look_at.x = -cam_radius * cos(glm::radians(cam_horiz_angle)) + cam_pos.x;
+        cam_look_at.z = cam_radius * sin(glm::radians(cam_horiz_angle)) + cam_pos.z;
+        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+    }
+    
+    // case when lower case j is pressed: turn right
+    else if (keyPressed == GLFW_KEY_K) {
+        cam_horiz_angle -= 10.0f;
+        cam_look_at.x = -cam_radius * cos(glm::radians(cam_horiz_angle)) + cam_pos.x;
+        cam_look_at.z = cam_radius * sin(glm::radians(cam_horiz_angle)) + cam_pos.z;
+        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+    }
+    
+    // case when lower case y is pressed: turn up
+    else if (keyPressed == GLFW_KEY_U) {
+        cam_look_at.y += 30.0f;
+        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+    }
+    
+    // case when lower case h is pressed: turn down
+    else if (keyPressed == GLFW_KEY_J) {
+        cam_look_at.y -= 30.0f;
+        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+    }
+    
+    // case when lower case o is pressed: move up
+    else if (keyPressed == GLFW_KEY_O) {
+        cam_pos.y += 10.0f;
+        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+    }
+    
+    // case when lower case l is pressed: move down
+    else if (keyPressed == GLFW_KEY_L) {
+        cam_pos.y -= 10.0f;
+        V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+    }
 }
 
 void Window::mouse_button_callback(GLFWwindow* window, int key, int action, int mods) {
@@ -523,16 +571,13 @@ void Window::drawPlants(int renderType) {
 
 	water->loadClippingPlane(plantShader, renderType);
 
-	for (Plant* vPlant : vinePlants)
-	{
+	for (Plant* vPlant : vinePlants) {
 		vPlant->draw();
 	}
-	for (Plant* bPlant : bushPlants)
-	{
+	for (Plant* bPlant : bushPlants) {
 		bPlant->draw();
 	}
-	for (Plant* fPlant : fernPlants)
-	{
+	for (Plant* fPlant : fernPlants) {
 		fPlant->draw();
 	}
 }

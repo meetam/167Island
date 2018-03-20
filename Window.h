@@ -53,6 +53,7 @@ public:
 	// callback functions
 	static void resize_callback(GLFWwindow* window, int width, int height);
 	static void idle_callback();
+    static void update_camera();
 	static void display_callback(GLFWwindow*);
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods); 
 	static void mouse_button_callback(GLFWwindow* window, int key, int action, int mods);
