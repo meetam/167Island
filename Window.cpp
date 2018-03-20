@@ -450,13 +450,13 @@ void Window::update_camera()
     
     // case when lower case y is pressed: turn up
     else if (keyPressed == GLFW_KEY_U) {
-        cam_look_at.y += 30.0f;
+        cam_look_at.y += 10.0f;
         V = glm::lookAt(cam_pos, cam_look_at, cam_up);
     }
     
     // case when lower case h is pressed: turn down
     else if (keyPressed == GLFW_KEY_J) {
-        cam_look_at.y -= 30.0f;
+        cam_look_at.y -= 10.0f;
         V = glm::lookAt(cam_pos, cam_look_at, cam_up);
     }
     
