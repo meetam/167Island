@@ -4,41 +4,11 @@
 
 Terrain::Terrain() { }
 
-Terrain::Terrain(int numVertex, float size, const char* heightMapPath) {
-	// calculates the vertex positions
-	int i = 0;
-	for (int z = -numVertex / 2; z < numVertex / 2; z++) {
-		for (int x = -numVertex / 2; x < numVertex / 2; x++) {
-			float vertexX = (x * 1.0 / numVertex) * size;
-			float vertexY = 0.0f;
-			float vertexZ = (z * 1.0 / numVertex) * size;
-
-			vertices.push_back((GLfloat) vertexX);
-			vertices.push_back((GLfloat) vertexY);
-			vertices.push_back((GLfloat) vertexZ);
-		}
-	}
-
-	// calculates the vertex indices (for drawing)
-	for (int z = 0; z < numVertex - 1; z++) {
-		for (int x = 0; x < numVertex - 1; x++) {
-			int topLeftIndex = z * numVertex + x;
-			int topRightIndex = topLeftIndex + 1;
-			int bottomLeftIndex = topLeftIndex + numVertex;
-			int bottomRightIndex = bottomLeftIndex + 1;
-
-			indices.push_back((GLuint) topLeftIndex);
-			indices.push_back((GLuint) bottomLeftIndex);
-			indices.push_back((GLuint) topRightIndex);
-
-			indices.push_back((GLuint) topRightIndex);
-			indices.push_back((GLuint) bottomLeftIndex);
-			indices.push_back((GLuint) bottomRightIndex);
-		}
-	}
+Terrain::Terrain(float size, const char* heightMapPath) {
+	this->size = size;
 
 	readHeightMap(heightMapPath);
-	calculateNormals(numVertex);
+	calculateNormals();
 
 	// creates the buffers
 	glGenVertexArrays(1, &VAO);
@@ -91,16 +61,47 @@ void Terrain::readHeightMap(const char* heightMapPath) {
 	}
 
 	if (heightMap) {
-		// iterates with an offset of 1 (for y index)
-		for (int i = 1; i < vertices.size(); i += 3) {
-			vertices[i] = heightMap[i];
+		this->numVertex = width;
+
+		// calculates the vertex positions
+		int i = 1;
+		for (int z = -numVertex / 2; z < numVertex / 2; z++) {
+			for (int x = -numVertex / 2; x < numVertex / 2; x++) {
+				float vertexX = (x * 1.0 / numVertex) * size;
+				float vertexY = heightMap[i];
+				float vertexZ = (z * 1.0 / numVertex) * size;
+
+				vertices.push_back((GLfloat)vertexX);
+				vertices.push_back((GLfloat)vertexY);
+				vertices.push_back((GLfloat)vertexZ);
+
+				i += 3;
+			}
+		}
+
+		// calculates the vertex indices (for drawing)
+		for (int z = 0; z < numVertex - 1; z++) {
+			for (int x = 0; x < numVertex - 1; x++) {
+				int topLeftIndex = z * numVertex + x;
+				int topRightIndex = topLeftIndex + 1;
+				int bottomLeftIndex = topLeftIndex + numVertex;
+				int bottomRightIndex = bottomLeftIndex + 1;
+
+				indices.push_back((GLuint)topLeftIndex);
+				indices.push_back((GLuint)bottomLeftIndex);
+				indices.push_back((GLuint)topRightIndex);
+
+				indices.push_back((GLuint)topRightIndex);
+				indices.push_back((GLuint)bottomLeftIndex);
+				indices.push_back((GLuint)bottomRightIndex);
+			}
 		}
 	}
 
 	stbi_image_free(heightMap);
 }
 
-void Terrain::calculateNormals(int numVertex) {
+void Terrain::calculateNormals() {
 	// interpolates the vertex normals from the surrounding heights
 	for (int z = 0; z < numVertex; z++) {
 		for (int x = 0; x < numVertex; x++) {
@@ -150,27 +151,28 @@ void Terrain::calculateNormals(int numVertex) {
 }
 
 void Terrain::loadTexture(const char* texturePath, int index) {
-	int w, h, numColorChannels;
+	int width, height, numColorChannels;
+	unsigned char *texture = stbi_load(texturePath, &width, &height, &numColorChannels, 0);
 
-	glGenTextures(1, &textureId[index]);
-	glBindTexture(GL_TEXTURE_2D, textureId[index]);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	unsigned char *data = stbi_load(texturePath, &w, &h, &numColorChannels, 0);
-
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	if (!texture) {
+		std::cout << "Texture map #" << index << " failed to load" << std::endl;
 	}
 
 	else {
-		std::cout << "Terrain texture failed to load at path: " << texturePath << std::endl;
+		// std::cout << width << " " << height << " " << numColorChannels << " " << sizeof(texture) << std::endl;
 	}
 
-	stbi_image_free(data);
+	if (texture) {
+		glGenTextures(1, &textureId[index]);
+		glBindTexture(GL_TEXTURE_2D, textureId[index]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
+	}
+
+	stbi_image_free(texture);
 }
 
 void Terrain::draw(GLuint shaderProgram)
@@ -180,8 +182,13 @@ void Terrain::draw(GLuint shaderProgram)
 	glBindTexture(GL_TEXTURE_2D, textureId[0]);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, textureId[1]);
-	glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
-	glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 1);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, textureId[2]);
+	glUniform1i(glGetUniformLocation(shaderProgram, "texture0"), 0);
+	glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 1);
+	glUniform1i(glGetUniformLocation(shaderProgram, "texture2"), 2);
+	glUniform1f(glGetUniformLocation(shaderProgram, "size"), size);
+	glUniform1f(glGetUniformLocation(shaderProgram, "maxHeight"), 255.0f);
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }

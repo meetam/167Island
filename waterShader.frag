@@ -5,18 +5,17 @@ in vec2 distortionCoordinates;
 in vec3 toCameraVector;
 in vec3 toLightVector;
 
-uniform vec3 waterColor;
-uniform vec3 lightColor;
-uniform sampler2D reflectionTexture;
-uniform sampler2D refractionTexture;
-uniform sampler2D dudvTexture;
-uniform sampler2D normalTexture;
-uniform float distortionOffset;
+uniform vec3 waterColor;				// color of water (from Water)
+uniform vec3 lightColor;				// color of point light (from Window)
+uniform float distortionOffset;			// offset for the dudv/normal map -- for animation/realism (from Water)
+uniform sampler2D reflectionTexture;	// reflection texture (from Water)
+uniform sampler2D refractionTexture;	// refraction texture (from Water)
+uniform sampler2D dudvTexture;			// dudv map texture (from Water)
+uniform sampler2D normalTexture;		// normal map texture (from Water)
 
-// You can output many things. The first vec4 type output determines the color of the fragment
 out vec4 color;
 
-const float distortionStrength = 0.01;
+const float distortionStrength = 0.02;
 
 vec3 calculatePointLightSpecular(vec3 normal);
 
@@ -48,9 +47,9 @@ void main()
 	color = mix(color, vec4(waterColor, 1.0f), 0.3) + vec4(specularHighlight, 1.0f);
 }
 
-vec3 calculatePointLightSpecular(vec3 normal) {
-	vec3 reflectedLight = reflect(-normalize(toLightVector), normal);
-	float specular = pow(max(dot(toCameraVector, reflectedLight), 0.0f), 0.6);
+vec3 calculatePointLightSpecular(vec3 norm) {
+	vec3 reflectedLight = reflect(normalize(-toLightVector), norm);
+	float specular = pow(max(dot(toCameraVector, reflectedLight), 0.0f), 0.5f);
 	vec3 specularColor = lightColor * (specular * 0.01f);
 
 	return specularColor;

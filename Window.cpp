@@ -24,9 +24,16 @@ GLint waterShader;
 #define WATER_FRAGMENT_SHADER_PATH "../waterShader.frag"
 
 // resource files
+/* credits:
+		height map		- https://blogs.igalia.com/itoral/2016/10/13/opengl-terrain-renderer-rendering-the-terrain-mesh/
+		textures		- https://www.filterforge.com/filters/category46-page1.html
+		dudv/normal map - https://www.dropbox.com/sh/z21kj5s448vzfql/AADy_KocZ6gDgK1lYjv7_SBAa?dl=0 (ThinMatrix's Tutorials)
+		skybox			- http://www.custommapmakers.org/skyboxes.php
+*/
 const char* heightMap = "../res/height_map.png";
 const char* sandTexture = "../res/texture_sand.jpg";
-const char* groundTexture = "../res/texture_ground.jpg";
+const char* rockTexture = "../res/texture_rock.jpg";
+const char* grassTexture = "../res/texture_grass.jpg";
 const char* dudvMap = "../res/dudv.png";
 const char* normalMap = "../res/normal.png";
 std::vector<const char*> skyFiles = {
@@ -51,9 +58,10 @@ std::vector<const char*> skyFiles = {
 // resource files
 const char* heightMap = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/height_map.png";
 const char* sandTexture = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/texture_sand.jpg";
-const char* groundTexture = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/texture_ground.jpg";
-const char* dudvMap = "/Users/Meeta/Desktop/CSE 167/HW4/HW4//res/dudv.png";
-const char* normalMap = "/Users/Meeta/Desktop/CSE 167/HW4/HW4//res/normal.png";
+const char* rockTexture = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/texture_rock.jpg";
+const char* grassTexture = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/texture_grass.jpg";
+const char* dudvMap = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/dudv.png";
+const char* normalMap = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/normal.png";
 std::vector<const char*> skyFiles = {
     "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/skybox_sky/ss_ft.tga",
     "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/skybox_sky/ss_bk.tga",
@@ -104,20 +112,22 @@ void Window::initialize_objects()
 	skybox = new Skybox(skyFiles);
 
 	// creates the terrain
-	float terrainSize = 800.f;
-	terrain = new Terrain(256, terrainSize, heightMap);
+	float terrainSize = 800.0f;
+	terrain = new Terrain(terrainSize, heightMap);
 	terrain->loadTexture(sandTexture, 0);
-	terrain->loadTexture(groundTexture, 1);
+	terrain->loadTexture(rockTexture, 1);
+	terrain->loadTexture(grassTexture, 2);
 
 	// creates the water
 	float waterHeight = 125.0f;
+	float waterSpeed = 0.003f;
 	glm::vec3 beachWaterColor = glm::vec3(0.03f, 0.53f, 0.58f);
-	water = new Water(terrainSize, waterHeight, beachWaterColor);
+	water = new Water(terrainSize, waterHeight, waterSpeed, beachWaterColor);
 	water->readDudvMap(dudvMap);
 	water->readNormalMap(normalMap);
 
 	// configures the point light
-	pointLightPosition = glm::vec3(0.0f, 300.0f, 0.0f);
+	pointLightPosition = glm::vec3(0.0f, 800.0f, 0.0f);
 	pointLightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	
 	// configures initial settings
@@ -328,7 +338,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 
 void Window::idle_callback()
 {
-	water->update();
+	water->update(); // water animation
 }
 
 void Window::display_callback(GLFWwindow* window)
@@ -481,6 +491,7 @@ void Window::drawTerrain(int renderType) {
 	glUseProgram(terrainShader);
 
 	water->loadClippingPlane(terrainShader, renderType);
+	water->loadHeight(terrainShader);
 
 	GLuint uView = glGetUniformLocation(terrainShader, "view");
 	glUniformMatrix4fv(uView, 1, GL_FALSE, &V[0][0]);
@@ -523,11 +534,11 @@ void Window::drawPlants(int renderType) {
 	}
 	for (Plant* bPlant : bushPlants)
 	{
-		bPlant->draw();
+		//bPlant->draw();
 	}
 	for (Plant* fPlant : fernPlants)
 	{
-		fPlant->draw();
+		//fPlant->draw();
 	}
 }
 

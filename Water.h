@@ -27,7 +27,9 @@ protected:
 	static const int REFRACTION_WIDTH = 640;	// full window resolution
 	static const int REFRACTION_HEIGHT = 480;
 
-	float size, height;
+	float size;
+	float height;
+	float speed;
 	glm::vec3 waterColor;
 	float distortionOffset;
 	std::vector<GLfloat> vertices;
@@ -46,11 +48,10 @@ public:
 	static const int REFRACTION = 1;
 
 	Water();
-	Water(float size, float height, glm::vec3 color);
+	Water(float size, float height, float speed, glm::vec3 color);
 	~Water();
 
 	float getHeight();
-	float getWaveSpeed(); // used for animation
 
 	// helper methods for initialization
 	void initializeVertices(float size, float height);
@@ -59,13 +60,16 @@ public:
 	void createColorTexture(unsigned int* textureId, int width, int height);
 	void createDepthTexture(unsigned int* textureId, int width, int height);
 
+	// reflection/refraction utility functions
 	void readDudvMap(const char* dudvMapPath);
 	void readNormalMap(const char* normalMapPath);
 	void update();
 
+	// rendering utility functions
 	void bindFrameBuffer(int type);
 	void unbindFrameBuffer(int windowWidth, int windowHeight);
 	void loadClippingPlane(GLuint shaderProgram, int type);
+	void loadHeight(GLuint shaderProgram);
 	void draw(GLuint shaderProgram);
 
 };

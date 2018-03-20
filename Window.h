@@ -29,8 +29,8 @@ class Window
 public:
 	static int width;
 	static int height;
-	static glm::mat4 P; // P for projection
-	static glm::mat4 V; // V for view
+	static glm::mat4 P;	// projection matrix
+	static glm::mat4 V;	// view matrix
 
 	// graphics-related variables
 	static Skybox* skybox;
@@ -45,6 +45,7 @@ public:
 	static double xPrevious;
 	static double yPrevious;
 
+	// initializer functions
 	static void initialize_objects();
     static void initialize_plants();
 	static void clean_up();
