@@ -13,8 +13,8 @@ out vec3 normalColor;
 
 void main()
 {
-    //vec3 offset = offsets[gl_InstanceID];
-    gl_Position = projection * view *  model * vec4(position, 1.0f);
-    gl_ClipDistance[0] = dot(gl_Position, clippingPlane);
+	vec4 worldCoordinates = model * vec4(position, 1.0f);
+    gl_Position = projection * view * worldCoordinates;
+    gl_ClipDistance[0] = dot(worldCoordinates, clippingPlane);
     normalColor = color;
 }

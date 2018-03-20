@@ -16,6 +16,7 @@
 #include <GL/glew.h>
 #endif
 
+#include "PlantSegment.h"
 #include <GLFW/glfw3.h>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -33,7 +34,7 @@ private:
     GLuint uProjection, uModel, uView, uColor;
     GLuint shader;
     string rule, type;
-    vector<vector<glm::vec3>> lineSegments;
+    vector<PlantSegment> plantSegments;
     glm::vec3 position, color;
     float startAngle, angleDelta, drawSize;
     int iterations;
@@ -47,9 +48,7 @@ public:
     string makeVineRule(int numRules);
     
     void makePoints();
-    
     void draw();
-    void drawLines(vector<glm::vec3> lineSegment);
 };
 
 #endif /* Plant_h */

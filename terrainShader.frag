@@ -11,5 +11,10 @@ out vec4 color;
 
 void main()
 {
-	color = mix(texture(texture1, outPosition.xz), texture(texture2, outPosition.xz), 0.4);
+	float height = outPosition.y / 255.0f;
+	color = mix(texture(texture1, outPosition.xz), texture(texture2, outPosition.xz), height * height);
+
+	if (outPosition.y < 125.0f) {
+		//color = mix(texture(texture1, outPosition.xz), texture(texture2, outPosition.xz), 0.1);
+	}
 }

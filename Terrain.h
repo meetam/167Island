@@ -27,6 +27,7 @@ protected:
 	// shader program variables
 	GLuint VAO, VBO_vertex, VBO_normal, EBO;
 
+	// texture variables
 	unsigned int textureId[2];
 
 public:

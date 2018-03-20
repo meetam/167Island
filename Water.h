@@ -27,7 +27,9 @@ protected:
 	static const int REFRACTION_WIDTH = 640;	// full window resolution
 	static const int REFRACTION_HEIGHT = 480;
 
-	float height;
+	float size, height;
+	glm::vec3 waterColor;
+	float distortionOffset;
 	std::vector<GLfloat> vertices;
 
 	// shader program variables
@@ -35,6 +37,8 @@ protected:
 	GLuint FBO_reflection, FBO_refraction;
 	unsigned int reflectionColorTexture, reflectionDepthTexture;
 	unsigned int refractionColorTexture, refractionDepthTexture;
+	unsigned int dudvMapTexture;
+	unsigned int normalMapTexture;
 
 public:
 	static const int NONE = -1;
@@ -42,10 +46,11 @@ public:
 	static const int REFRACTION = 1;
 
 	Water();
-	Water(float size, float height);
+	Water(float size, float height, glm::vec3 color);
 	~Water();
 
 	float getHeight();
+	float getWaveSpeed(); // used for animation
 
 	// helper methods for initialization
 	void initializeVertices(float size, float height);
@@ -53,6 +58,10 @@ public:
 	void initializeFrameBuffer(GLuint* FBO, unsigned int* colorTextureId, unsigned int* depthTextureId, int width, int height);
 	void createColorTexture(unsigned int* textureId, int width, int height);
 	void createDepthTexture(unsigned int* textureId, int width, int height);
+
+	void readDudvMap(const char* dudvMapPath);
+	void readNormalMap(const char* normalMapPath);
+	void update();
 
 	void bindFrameBuffer(int type);
 	void unbindFrameBuffer(int windowWidth, int windowHeight);

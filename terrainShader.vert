@@ -16,5 +16,5 @@ void main()
 	outPosition = position;
     outNormal = normal;
 	gl_Position = projection * view * vec4(position, 1.0f);
-	gl_ClipDistance[0] = dot(gl_Position, clippingPlane);
+	gl_ClipDistance[0] = dot(vec4(position, 1.0f), clippingPlane);
 }
