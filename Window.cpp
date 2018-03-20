@@ -12,6 +12,7 @@ GLint plantShader;
 GLint skyboxShader;
 GLint terrainShader;
 GLint waterShader;
+GLint fogShader;
 
 /*// On some systems you need to change this to the absolute path
 #define PLANT_VERTEX_PATH "../plantShader.vert"
@@ -22,6 +23,8 @@ GLint waterShader;
 #define TERRAIN_FRAGMENT_SHADER_PATH "../terrainShader.frag"
 #define WATER_VERTEX_SHADER_PATH "../waterShader.vert"
 #define WATER_FRAGMENT_SHADER_PATH "../waterShader.frag"
+#define FOG_VERTEX_SHADER_PATH "../fogShader.vert"
+#define FOG_FRAGMENT_SHADER_PATH "../fogShader.frag"
 
 // resource files
 const char* heightMap = "../res/height_map.png";
@@ -45,6 +48,8 @@ std::vector<const char*> skyFiles = {
 #define TERRAIN_FRAGMENT_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/terrainShader.frag"
 #define WATER_VERTEX_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/waterShader.vert"
 #define WATER_FRAGMENT_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/waterShader.frag"
+#define FOG_VERTEX_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/fogShader.vert"
+#define FOG_FRAGMENT_SHADER_PATH "/Users/Meeta/Desktop/CSE 167/HW4/HW4/fogShader.frag"
 
 // resource files
 const char* heightMap = "/Users/Meeta/Desktop/CSE 167/HW4/HW4/res/height_map.png";
@@ -90,6 +95,7 @@ void Window::initialize_objects()
 	skyboxShader = LoadShaders(SKYBOX_VERTEX_SHADER_PATH, SKYBOX_FRAGMENT_SHADER_PATH);
 	terrainShader = LoadShaders(TERRAIN_VERTEX_SHADER_PATH, TERRAIN_FRAGMENT_SHADER_PATH);
 	waterShader = LoadShaders(WATER_VERTEX_SHADER_PATH, WATER_FRAGMENT_SHADER_PATH);
+    fogShader = LoadShaders(FOG_VERTEX_SHADER_PATH, FOG_FRAGMENT_SHADER_PATH);
 
     // creates the plants
     initialize_plants();
@@ -154,7 +160,7 @@ void Window::initialize_plants()
     for (int i = 0; i < 19; i++)
     {
         // Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
-        Plant * fernPlant = new Plant("fern", plantShader, fernPos[i], glm::vec3(0.42f, 0.557f, 0.137f), startAngle, 25.0f, drawSize, 4);
+        Plant * fernPlant = new Plant("fern", fogShader, fernPos[i], glm::vec3(0.42f, 0.557f, 0.137f), startAngle, 25.0f, drawSize, 4);
         fernPlants.push_back(fernPlant);
         if (i % 2 == 0)
             startAngle += 20.0f;
@@ -174,7 +180,7 @@ void Window::initialize_plants()
     for (int i = 0; i < 4; i++)
     {
         // Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
-        Plant * bushPlant = new Plant("bush", plantShader, bushPos[i], glm::vec3(0.133f, 0.545f, 0.133f), 95.0f, 22.5f, drawSize, iterations);
+        Plant * bushPlant = new Plant("bush", fogShader, bushPos[i], glm::vec3(0.133f, 0.545f, 0.133f), 95.0f, 22.5f, drawSize, iterations);
         bushPlants.push_back(bushPlant);
         if (i % 2 == 0)
             drawSize -= 1.0f;
@@ -212,7 +218,7 @@ void Window::initialize_plants()
     for (int i = 0; i < 20; i++)
     {
         // Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
-        Plant * vinePlant = new Plant("vine", plantShader, vinePos[i], glm::vec3(0.133f, 0.7f, 0.133f), 90.0f, 25.7f, drawSize, 5);
+        Plant * vinePlant = new Plant("vine", fogShader, vinePos[i], glm::vec3(0.133f, 0.7f, 0.133f), 90.0f, 25.7f, drawSize, 5);
         vinePlants.push_back(vinePlant);
         
         if (i % 3 == 0)
@@ -350,9 +356,7 @@ void Window::display_callback(GLFWwindow* window)
     skybox->draw(skyboxShader);
     
     // draws the plants
-    glUseProgram(plantShader);
-    //fernPlant->draw();
-    //bushPlant->draw();
+    glUseProgram(fogShader);
     for (Plant* vPlant : vinePlants)
     {
         vPlant->draw();

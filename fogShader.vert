@@ -7,6 +7,7 @@ layout(location = 2) in vec2 texcoord;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform vec3 color;
 
 out vec3 world_pos;
 out vec3 world_normal;
@@ -26,5 +27,6 @@ void main(){
     gl_Position = projection * viewSpace;
     
     //Normal color
-    normalColor = normalize(normal) * 0.5 + 0.5;
+    //normalColor = normalize(normal) * 0.5 + 0.5;
+    normalColor = color;
 }
