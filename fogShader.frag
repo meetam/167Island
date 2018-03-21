@@ -17,7 +17,7 @@ in vec4 viewSpace;
 in vec2 texcoords;
 in vec3 normalColor;
 
-const vec3 fogColor = vec3(0.5, 0.5,0.5);
+const vec3 fogColor = vec3(0.4, 0.51, 0.6);
 const float FogDensity = 0.05;
 
 void main(){
@@ -51,7 +51,7 @@ void main(){
     //dist = length(viewSpace);
     
     float fogStart = 100;
-    float fogEnd = 1000;
+    float fogEnd = 800;
     fogFactor = (fogEnd - dist)/(fogEnd - fogStart);
     fogFactor = clamp( fogFactor, 0.0, 1.0 );
     finalColor = mix(fogColor, lightColor, fogFactor);

@@ -33,7 +33,7 @@ GLint fogShader;
 		dudv/normal map - https://www.dropbox.com/sh/z21kj5s448vzfql/AADy_KocZ6gDgK1lYjv7_SBAa?dl=0 (ThinMatrix's Tutorials)
 		skybox			- http://www.custommapmakers.org/skyboxes.php
 */
-const char* heightMap = "../res/height_map.png";
+/*const char* heightMap = "../res/height_map.png";
 const char* sandTexture = "../res/texture_sand.jpg";
 const char* rockTexture = "../res/texture_rock.jpg";
 const char* grassTexture = "../res/texture_grass.jpg";
@@ -154,7 +154,7 @@ void Window::initialize_plants()
      *     forward - negative z
      */
     
-    // creates the fern plants
+    // creates the fern plants (19 PLANTS)
     glm::vec3 fernPos[] = {
         // cluster 1
         glm::vec3(260.0f, 150.0f, -240.0f),
@@ -193,7 +193,7 @@ void Window::initialize_plants()
             startAngle -= 20.0f;
     }
     
-    // creates the bush plants
+    // creates the bush plants (4 PLANTS)
     glm::vec3 bushPos[] = {
         glm::vec3(240.0f, 140.0f, -240.0f),
         glm::vec3(200.0f, 120.0f, 100.0f),
@@ -215,7 +215,7 @@ void Window::initialize_plants()
             iterations = 4;
     }
     
-    // creates the vine plants
+    // creates the vine plants (20 PLANTS)
     glm::vec3 vinePos[] = {
         glm::vec3(390.0f, 120.0f, -390.0f),
         glm::vec3(240.0f, 120.0f, -390.0f),

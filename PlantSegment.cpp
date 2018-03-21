@@ -46,7 +46,7 @@ void PlantSegment::draw()
     glUniform3f(uColor, color.x, color.y, color.z);
     
     // Add fog
-    glClearColor(0.5, 0.5, 0.5, 1);//gray color, same as fog color
+    glClearColor(0.4, 0.51, 0.6, 1);//gray color, same as fog color
     glClearDepth(1);
     glEnable(GL_DEPTH_TEST);
     
