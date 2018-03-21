@@ -196,13 +196,13 @@ void Window::initialize_plants()
     // creates the bush plants (4 PLANTS)
     glm::vec3 bushPos[] = {
         glm::vec3(240.0f, 140.0f, -240.0f),
-        glm::vec3(200.0f, 120.0f, 100.0f),
+        //glm::vec3(200.0f, 120.0f, 100.0f),
         glm::vec3(0.0f, 150.0f, 200.0f),
         glm::vec3(-200.0f, 120.0f, 0.0f)
     };
     drawSize = 2.0f;
     int iterations = 3;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 3; i++)
     {
         // Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
         Plant * bushPlant = new Plant("bush", fogShader, bushPos[i], glm::vec3(0.133f, 0.545f, 0.133f), 95.0f, 22.5f, drawSize, iterations);
@@ -431,7 +431,9 @@ void Window::update_camera()
     // case when lower case w is pressed: move front
     else if (keyPressed == GLFW_KEY_W) {
         cam_pos.x += -10.0f * cos(glm::radians(cam_horiz_angle));
+        cam_look_at.x += -10.0f * cos(glm::radians(cam_horiz_angle));
         cam_pos.z += 10.0f * sin(glm::radians(cam_horiz_angle));
+        cam_look_at.z += 10.0f * sin(glm::radians(cam_horiz_angle));
         V = glm::lookAt(cam_pos, cam_look_at, cam_up);
     }
     
