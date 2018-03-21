@@ -32,13 +32,12 @@ private:
     std::vector<glm::vec3> points;
     GLuint VAO, VBO;
     GLuint uProjection, uView, uModel, uColor;
-    GLuint shader;
     glm::mat4 toWorld;
     glm::vec3 color;
     
 public:
-    PlantSegment(GLuint shaderProgram, std::vector<glm::vec3> p, glm::vec3 lineColor);
-    void draw();
+    PlantSegment(std::vector<glm::vec3> p, glm::vec3 lineColor);
+    void draw(GLuint shaderProgram);
 };
 
 #endif /* PlantSegment_h */

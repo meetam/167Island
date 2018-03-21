@@ -108,7 +108,7 @@ void Plant::makePoints()
             pos.x = xPos;
             pos.y = yPos;
             if (type != "vine") {
-                float zPos = pos.z + drawSize * sin(glm::radians(zAngle));
+                float zPos = pos.z + drawSize * cos(glm::radians(angle));
                 pos.z = zPos;
             }
             lineSegment.push_back(pos);
@@ -134,7 +134,7 @@ void Plant::makePoints()
         else if (rule[i] == ']')
         {
             //End of line segment
-            PlantSegment plantSegment (shader, lineSegment, color);
+            PlantSegment plantSegment (lineSegment, color);
             plantSegments.push_back(plantSegment);
             lineSegment.clear();
             
@@ -147,10 +147,10 @@ void Plant::makePoints()
     }
 }
 
-void Plant::draw()
+void Plant::draw(GLuint shaderProgram)
 {
     for (int i = 0; i < plantSegments.size(); i++)
     {
-        plantSegments[i].draw();
+        plantSegments[i].draw(shaderProgram);
     }
 }

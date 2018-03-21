@@ -84,6 +84,7 @@ float cam_horiz_angle = 90.0f;
 float cam_radius = 400.0f;
 bool isKeyPressed = false;
 int keyPressed;
+bool fogMode = false;
 
 int Window::width;
 int Window::height;
@@ -159,30 +160,30 @@ void Window::initialize_plants()
         // cluster 1
         glm::vec3(260.0f, 150.0f, -240.0f),
         glm::vec3(270.0f, 150.0f, -260.0f),
-        glm::vec3(250.0f, 150.0f, -280.0f),
+        /*glm::vec3(250.0f, 150.0f, -280.0f),
         glm::vec3(230.0f, 160.0f, -280.0f),
-        glm::vec3(230.0f, 160.0f, -260.0f),
+        glm::vec3(230.0f, 160.0f, -260.0f),*/
         // cluster 2
         glm::vec3(230.0f, 150.0f, 100.0f),
         glm::vec3(230.0f, 160.0f, 50.0f),
-        glm::vec3(210.0f, 160.0f, 30.0f),
-        glm::vec3(160.0f, 160.0f, 30.0f),
+        /*glm::vec3(210.0f, 160.0f, 30.0f),
+        glm::vec3(160.0f, 160.0f, 30.0f),*/
         // cluster 3
         glm::vec3(0.0f, 140.0f, 150.0f),
         glm::vec3(-40.0f, 140.0f, 150.0f),
-        glm::vec3(-50.0f, 140.0f, 170.0f),
+        /*glm::vec3(-50.0f, 140.0f, 170.0f),
         glm::vec3(-50.0f, 140.0f, 180.0f),
-        glm::vec3(-80.0f, 140.0f, 180.0f),
+        glm::vec3(-80.0f, 140.0f, 180.0f),*/
         // cluster 4
         glm::vec3(-210.0f, 150.0f, -200.0f),
         glm::vec3(-210.0f, 140.0f, -320.0f),
-        glm::vec3(-240.0f, 150.0f, -320.0f),
+        /*glm::vec3(-240.0f, 150.0f, -320.0f),
         glm::vec3(-250.0f, 140.0f, -360.0f),
-        glm::vec3(-210.0f, 140.0f, -370.0f)
+        glm::vec3(-210.0f, 140.0f, -370.0f)*/
     };
     float drawSize = 1.0f;
     float startAngle = 60.0f;
-    for (int i = 0; i < 19; i++)
+    for (int i = 0; i < 8; i++)
     {
         // Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
         Plant * fernPlant = new Plant("fern", fogShader, fernPos[i], glm::vec3(0.42f, 0.557f, 0.137f), startAngle, 25.0f, drawSize, 4);
@@ -217,29 +218,29 @@ void Window::initialize_plants()
     
     // creates the vine plants (20 PLANTS)
     glm::vec3 vinePos[] = {
-        glm::vec3(390.0f, 120.0f, -390.0f),
+        /*glm::vec3(390.0f, 120.0f, -390.0f),
         glm::vec3(240.0f, 120.0f, -390.0f),
         glm::vec3(90.0f, 120.0f, -390.0f),
         glm::vec3(-60.0f, 120.0f, -390.0f),
         glm::vec3(-110.0f, 120.0f, -390.0f),
-        glm::vec3(-120.0f, 120.0f, -290.0f),
+        glm::vec3(-120.0f, 120.0f, -290.0f),*/
         glm::vec3(-170.0f, 150.0f, -200.0f),
         glm::vec3(-240.0f, 120.0f, -150.0f),
         glm::vec3(-250.0f, 120.0f, -90.0f),
         glm::vec3(-250.0f, 120.0f, 60.0f),
         glm::vec3(-300.0f, 120.0f, 200.0f),
         glm::vec3(-390.0f, 120.0f, 390.0f),
-        glm::vec3(-320.0f, 120.0f, 390.0f),
+        /*glm::vec3(-320.0f, 120.0f, 390.0f),
         glm::vec3(-220.0f, 120.0f, 380.0f),
         glm::vec3(-120.0f, 120.0f, 370.0f),
         glm::vec3(0.0f, 120.0f, 370.0f),
         glm::vec3(0.0f, 120.0f, 250.0f),
         glm::vec3(200.0f, 120.0f, 370.0f),
         glm::vec3(390.0f, 120.0f, 370.0f),
-        glm::vec3(390.0f, 120.0f, 200.0f)
+        glm::vec3(390.0f, 120.0f, 200.0f)*/
     };
     drawSize = 0.1f;
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 6; i++)
     {
         // Parameters: type, shader, position, color, start angle, angle delta, draw size, iterations
         Plant * vinePlant = new Plant("vine", fogShader, vinePos[i], glm::vec3(0.133f, 0.7f, 0.133f), 90.0f, 25.7f, drawSize, 5);
@@ -397,6 +398,11 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			// Close the window. This causes the program to also terminate.
 			glfwSetWindowShouldClose(window, GL_TRUE);
 		}
+        
+        else if (key == GLFW_KEY_F) //Toggle fog off/on
+        {
+            fogMode = !fogMode;
+        }
         
         else
         {
@@ -580,18 +586,34 @@ void Window::drawWater() {
 }
 
 void Window::drawPlants(int renderType) {
-	glUseProgram(fogShader);
-
-	water->loadClippingPlane(plantShader, renderType);
+    if (fogMode)
+    {
+        glUseProgram(fogShader);
+        water->loadClippingPlane(fogShader, renderType);
+    }
+    else
+    {
+        glUseProgram(plantShader);
+        water->loadClippingPlane(plantShader, renderType);
+    }
 
 	for (Plant* vPlant : vinePlants) {
-		vPlant->draw();
+        if (fogMode)
+            vPlant->draw(fogShader);
+        else
+            vPlant->draw(plantShader);
 	}
 	for (Plant* bPlant : bushPlants) {
-		bPlant->draw();
+        if (fogMode)
+            bPlant->draw(fogShader);
+        else
+            bPlant->draw(plantShader);
 	}
 	for (Plant* fPlant : fernPlants) {
-		fPlant->draw();
+        if (fogMode)
+            fPlant->draw(fogShader);
+        else
+            fPlant->draw(plantShader);
 	}
 }
 

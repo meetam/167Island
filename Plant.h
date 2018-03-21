@@ -32,7 +32,6 @@ class Plant
 private:
     GLuint VAO, VBO;
     GLuint uProjection, uModel, uView, uColor;
-    GLuint shader;
     string rule, type;
     vector<PlantSegment> plantSegments;
     glm::vec3 position, color;
@@ -46,9 +45,10 @@ public:
     string addF(int numRules);
     string makeBushRule(int numRules);
     string makeVineRule(int numRules);
+    GLuint shader;
     
     void makePoints();
-    void draw();
+    void draw(GLuint shaderProgram);
 };
 
 #endif /* Plant_h */

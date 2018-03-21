@@ -9,9 +9,8 @@
 #include "PlantSegment.h"
 #include "Window.h"
 
-PlantSegment::PlantSegment(GLuint shaderProgram, std::vector<glm::vec3> p, glm::vec3 lineColor)
+PlantSegment::PlantSegment(std::vector<glm::vec3> p, glm::vec3 lineColor)
 {
-    shader = shaderProgram;
     points = p;
     color = lineColor;
     
@@ -31,7 +30,7 @@ PlantSegment::PlantSegment(GLuint shaderProgram, std::vector<glm::vec3> p, glm::
     glBindVertexArray(0);
 }
 
-void PlantSegment::draw()
+void PlantSegment::draw(GLuint shader)
 {
     glm::mat4 modelview = Window::V * toWorld;
     uProjection = glGetUniformLocation(shader, "projection");
@@ -51,6 +50,7 @@ void PlantSegment::draw()
     glEnable(GL_DEPTH_TEST);
     
     glBindVertexArray(VAO);
+    glLineWidth(4.0f);
     glDrawArrays(GL_LINE_STRIP, 0, points.size());
     
     //Unbind
